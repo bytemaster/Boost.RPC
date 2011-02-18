@@ -301,103 +301,59 @@ class pack_message_visitor
     template<typename Class>
     void end( Class, const char* anem ){}
 
-    template<typename Class, typename T, typename Flags>
-    void accept_member( const Class& c, T (Class::*p), const char* name, Flags key )
+    /**
+     *  This method handles all fundamental types
+     */
+    template<typename T, typename Flags>
+    void pack( const T& value, const char* name, Flags key, boost::true_type _is_fundamental )
+    {
+        m_os << unsigned_int( uint32_t(key) << 3 | get_wire_type<T>::value );
+        m_os << value;
+    }
+
+    /**
+     *  This method handles the general case where T is a nested type 
+     *      (not string,varint,fundamental,container,optional, or required)
+     */
+    template< typename T, typename Flags>
+    void pack( const T& value, const char* name, Flags key, boost::false_type _is_not_fundamental )
     {
          m_os <<unsigned_int( uint32_t(key) << 3 | length_delimited );
     
          std::vector<char> buf;
-         boost::rpc::protocol_buffer::pack(buf, c.*p );
+         boost::rpc::protocol_buffer::pack(buf, value );
 
          unsigned_int s(buf.size());
          m_os << s;
          if( buf.size() )
              m_os.write( &buf.front(), s.value );
     }
-    
-    template<typename Class, typename Flags>
-    void accept_member( const Class& c, signed_int (Class::*p), const char* name, Flags key )
+
+    template<typename Class, typename T, typename Flags>
+    void accept_member( const Class& c, T (Class::*p), const char* name, Flags key )
     {
-         m_os << unsigned_int( (uint32_t(key) << 3) | varint );
-         m_os << c.*p;
-    }
-    template<typename Class, typename Flags>
-    void accept_member( const Class& c, unsigned_int (Class::*p), const char* name, Flags key )
-    {
-         m_os << unsigned_int( uint32_t(key) << 3 | varint );
-         m_os << c.*p;
+         pack( c.*p, name, key, typename boost::is_fundamental<T>::type() );
     }
     
-    template<typename Class, typename Flags>
-    void accept_member( const Class& c, uint8_t (Class::*p), const char* name, Flags key )
+    template<typename Flags>
+    void pack( const signed_int& value, const char* name, Flags key, boost::false_type _is_not_fundamental )
     {
-         m_os <<unsigned_int( uint32_t(key) << 3 | bit8 );
-         m_os <<c.*p;
+        m_os << unsigned_int( uint32_t(key) << 3 | varint );
+        m_os << value;
     }
-    template<typename Class, typename Flags>
-    void accept_member( const Class& c, int8_t (Class::*p), const char* name, Flags key )
+    template<typename Flags>
+    void pack( const unsigned_int& value, const char* name, Flags key, boost::false_type _is_not_fundamental )
     {
-         m_os <<unsigned_int( uint32_t(key) << 3 | bit8 );
-         m_os <<c.*p;
+        m_os << unsigned_int( uint32_t(key) << 3 | varint );
+        m_os << value;
     }
-    
-    template<typename Class, typename Flags>
-    void accept_member( const Class& c, uint16_t (Class::*p), const char* name, Flags key )
-    {
-         m_os <<unsigned_int( uint32_t(key) << 3 | bit16 );
-         m_os.write( (const char*)&(c.*p), sizeof(c.*p) );
-    }
-    template<typename Class, typename Flags>
-    void accept_member( const Class& c, int16_t (Class::*p), const char* name, Flags key )
-    {
-         m_os <<unsigned_int( uint32_t(key) << 3 | bit16 );
-         m_os.write( (const char*)&(c.*p), sizeof(c.*p) );
-    }
-    
-    template<typename Class, typename Flags>
-    void accept_member( const Class& c, int32_t (Class::*p), const char* name, Flags key )
-    {
-         m_os <<unsigned_int( uint32_t(key) << 3 | bit32 );
-         m_os.write( (const char*)&(c.*p), sizeof(int32_t) );
-    }
-    template<typename Class, typename Flags>
-    void accept_member( const Class& c, uint32_t (Class::*p), const char* name, Flags key )
-    {
-         m_os <<unsigned_int( uint32_t(key) << 3 | bit32 );
-         m_os.write( (const char*)&(c.*p), sizeof(int32_t) );
-    }
-    template<typename Class, typename Flags>
-    void accept_member( const Class& c, int64_t (Class::*p), const char* name, Flags key )
-    {
-         m_os <<unsigned_int( uint32_t(key) << 3 | bit64 );
-         m_os.write( (const char*)&(c.*p), sizeof(int64_t) );
-    }
-    template<typename Class, typename Flags>
-    void accept_member( const Class& c, uint64_t (Class::*p), const char* name, Flags key )
-    {
-         m_os <<unsigned_int( uint32_t(key) << 3 | bit64 );
-         m_os.write( (const char*)&(c.*p), sizeof(int64_t) );
-    }
-    template<typename Class, typename Flags>
-    void accept_member( const Class& c, double (Class::*p), const char* name, Flags key )
-    {
-         m_os <<unsigned_int( uint32_t(key) << 3 | bit64 );
-         m_os.write( (const char*)&(c.*p), sizeof(double) );
-    }
-    template<typename Class, typename Flags>
-    void accept_member( const Class& c, float (Class::*p), const char* name, Flags key )
-    {
-         m_os <<unsigned_int( uint32_t(key) << 3 | bit32 );
-         m_os.write( (const char*)&(c.*p), sizeof(float) );
-    }
-    
-    template<typename Class, typename Flags>
-    void accept_member( const Class& c, std::string (Class::*p), const char* name, Flags key )
+    template<typename Flags>
+    void pack( const std::string& value, const char* name, Flags key, boost::false_type _is_not_fundamental )
     {
          m_os <<unsigned_int( uint32_t(key) << 3 | length_delimited );
-         uint32_t size = (c.*p).size();
+         uint32_t size = value.size();
          m_os <<unsigned_int( size );
-         m_os.write( (c.*p).c_str(), size );
+         m_os.write(  value.c_str(), size );
     }
     
     template<typename Class, typename Field, typename Alloc, template<typename,typename> class Container, typename Flags>
