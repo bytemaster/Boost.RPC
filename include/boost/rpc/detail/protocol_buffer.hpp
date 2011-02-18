@@ -3,6 +3,7 @@
 #include <boost/rpc/datastream.hpp>
 #include <boost/rpc/varint.hpp>
 #include <boost/idl/reflect.hpp>
+#include <boost/optional.hpp>
 
 namespace boost { namespace rpc { namespace protocol_buffer { namespace detail {
 
@@ -15,6 +16,26 @@ namespace boost { namespace rpc { namespace protocol_buffer { namespace detail {
         bit16             = 4, // custom
         bit32             = 5
     };
+
+    template<typename T, int fund, uint32_t size>
+    struct get_wire_type_impl{ enum wire_type { value = length_delimited  }; };
+
+    template<>
+    struct get_wire_type_impl<unsigned_int,0,1>{ enum wire_type { value = varint  }; };
+    template<>
+    struct get_wire_type_impl<signed_int,0,1>  { enum wire_type { value = varint  }; };
+
+    template<typename T>
+    struct get_wire_type_impl<T,1,1>{ enum wire_type { value = bit8  }; };
+    template<typename T>
+    struct get_wire_type_impl<T,1,2>{ enum wire_type { value = bit16 }; };
+    template<typename T>
+    struct get_wire_type_impl<T,1,4>{ enum wire_type { value = bit32 }; };
+    template<typename T>
+    struct get_wire_type_impl<T,1,8>{ enum wire_type { value = bit64 }; };
+    template<typename T>
+    struct get_wire_type : get_wire_type_impl<T,boost::is_fundamental<T>::value,sizeof(T)>{};
+
 
     template<typename T,typename T2>
     bool unpack_message_visitor( boost::rpc::datastream<T2>& is, T& val );
@@ -35,6 +56,7 @@ namespace boost { namespace rpc { namespace protocol_buffer { namespace detail {
         template<typename Class>
         void end( Class, const char* anem ){}
 
+
         friend inline void visit( std::string& str, unpack_field_visitor& v, uint32_t f = -1 )
         { 
             unsigned_int size;
@@ -47,24 +69,42 @@ namespace boost { namespace rpc { namespace protocol_buffer { namespace detail {
             }
             v.error = !v.is.valid();
         }
-        
-        template<typename Class, typename T, typename Flags>
-        void accept_member( Class& c, T (Class::*p), const char* name, Flags key )
+
+        /**
+         *  This method handles all fundamental types
+         */
+        template<typename T, typename Flags>
+        void unpack( T& value, const char* name, Flags key, boost::true_type _is_fundamental )
         {
-            if( key != m_field || m_type != length_delimited )
+            if( key != m_field || m_type != get_wire_type<T>::value )
             {
                 std::cerr << "Error unpacking field '"<<name<<"', key/type mismatch\n";
                 error = true;
                 return;
             }
-
+            is >> value;
+            error = !is.valid();
+        }
+        /**
+         *  This method handles the general case where T is a nested type 
+         *      (not string,varint,fundamental,container,optional, or required)
+         */
+        template<typename T, typename Flags>
+        void unpack( T& value, const char* name, Flags key, boost::false_type _is_not_fundamental )
+        {
+            if( key != m_field || m_type != get_wire_type<T>::value )
+            {
+                std::cerr << "Error unpacking field '"<<name<<"', key/type mismatch\n";
+                error = true;
+                return;
+            }
             unsigned_int size;
             is >> size;
 
             if( is.remaining() >= size.value )
             {
                 datastream<DataStreamType> is2( is.pos(), size.value );
-                if( !unpack_message_visitor( is2, c.*p ) )
+                if( !unpack_message_visitor( is2, value ) )
                     return; // error!
             }
             else
@@ -75,9 +115,8 @@ namespace boost { namespace rpc { namespace protocol_buffer { namespace detail {
             is.skip(size);
             error = !is.valid();
         }
-        
-        template<typename Class, typename Flags>
-        void accept_member( Class& c, signed_int (Class::*p), const char* name, Flags key )
+        template<typename Flags>
+        void unpack( signed_int& value, const char* name, Flags key, boost::false_type _is_not_fundamental )
         {
             if( key != m_field || m_type != varint )
             {
@@ -85,144 +124,24 @@ namespace boost { namespace rpc { namespace protocol_buffer { namespace detail {
                 error = true;
                 return;
             }
-            is >> c.*p;
-            error = !is.valid();
+            is >> value;
+            error = false;
         }
-        template<typename Class, typename Flags>
-        void accept_member( Class& c, unsigned_int (Class::*p), const char* name, Flags key )
+        template<typename Flags>
+        void unpack( unsigned_int& value, const char* name, Flags key, boost::false_type _is_not_fundamental )
         {
             if( key != m_field || m_type != varint )
             {
                 std::cerr << "Error unpacking field '"<<name<<"', key/type mismatch\n";
+                error = true;
                 return;
             }
-            is >> c.*p;
-            error = !is.valid();
+            is >> value;
+            error = false;
         }
         
-        template<typename Class, typename Flags>
-        void accept_member( Class& c, uint8_t (Class::*p), const char* name, Flags key )
-        {
-            if( key != m_field || m_type != bit8 )
-            {
-                std::cerr << "Error unpacking field '"<<name<<"', key/type mismatch\n";
-                error = true;
-                return;
-            }
-            error = !is.getc(c.*p);
-        }
-        template<typename Class, typename Flags>
-        void accept_member( Class& c, int8_t (Class::*p), const char* name, Flags key )
-        {
-            if( key != m_field || m_type != bit8 )
-            {
-                std::cerr << "Error unpacking field '"<<name<<"', key/type mismatch\n";
-                error = true;
-                return;
-            }
-            error = !is.getc( *((uint8_t*)&(c.*p)) );
-        }
-        
-        template<typename Class, typename Flags>
-        void accept_member( Class& c, uint16_t (Class::*p), const char* name, Flags key )
-        {
-            if( key != m_field || m_type != bit16 )
-            {
-                std::cerr << "Error unpacking field '"<<name<<"', key/type mismatch\n";
-                error = true;
-                return;
-            }
-            is >> c.*p;
-            error = !is.valid();
-        }
-        template<typename Class, typename Flags>
-        void accept_member( Class& c, int16_t (Class::*p), const char* name, Flags key )
-        {
-            if( key != m_field || m_type != bit16 )
-            {
-                std::cerr << "Error unpacking field '"<<name<<"', key/type mismatch\n";
-                error = true;
-                return;
-            }
-            is >> c.*p;
-            error = !is.valid();
-        }
-        
-        template<typename Class, typename Flags>
-        void accept_member( Class& c, int32_t (Class::*p), const char* name, Flags key )
-        {
-            if( key != m_field || m_type != bit32 )
-            {
-                std::cerr << "Error unpacking field '"<<name<<"', key/type mismatch\n";
-                error = true;
-                return;
-            }
-            is >> c.*p;
-            error = !is.valid();
-        }
-        template<typename Class, typename Flags>
-        void accept_member( Class& c, uint32_t (Class::*p), const char* name, Flags key )
-        {
-            if( key != m_field || m_type != bit32 )
-            {
-                std::cerr << "Error unpacking field '"<<name<<"', key/type mismatch\n";
-                error = true;
-                return;
-            }
-            is >> c.*p;
-            error = !is.valid();
-        }
-        template<typename Class, typename Flags>
-        void accept_member( Class& c, int64_t (Class::*p), const char* name, Flags key )
-        {
-            if( key != m_field || m_type != bit64 )
-            {
-                std::cerr << "Error unpacking field '"<<name<<"', key/type mismatch\n";
-                error = true;
-                return;
-            }
-            is >> c.*p;
-            error = !is.valid();
-        }
-        template<typename Class, typename Flags>
-        void accept_member( Class& c, uint64_t (Class::*p), const char* name, Flags key )
-        {
-            if( key != m_field || m_type != bit64 )
-            {
-                std::cerr << "Error unpacking field '"<<name<<"', key/type mismatch\n";
-                error = true;
-                return;
-            }
-            is >> c.*p;
-            error = !is.valid();
-        }
-        template<typename Class, typename Flags>
-        void accept_member( Class& c, double (Class::*p), const char* name, Flags key )
-        {
-            if( key != m_field || m_type != bit64 )
-            {
-                std::cerr << "Error unpacking field '"<<name<<"', key/type mismatch\n";
-                error = true;
-                return;
-            }
-            is >> (c.*p);
-            error = !is.valid();
-        }
-        template<typename Class, typename Flags>
-        void accept_member( Class& c, float (Class::*p), const char* name, Flags key )
-        {
-            if( key != m_field || m_type != bit32 )
-            {
-                std::cerr << "Error unpacking field '"<<name<<"', key/type mismatch\n";
-                error = true;
-                return;
-            }
-            is >> (c.*p);
-            error = !is.valid();
-        }
-        
-        template<typename Class, typename Flags>
-        void accept_member( Class& c, std::string (Class::*p), const char* name, Flags key )
+        template<typename Flags>
+        void unpack( std::string& str, const char* name, Flags key, boost::false_type _is_not_fundamental )
         {
             if( key != m_field || m_type != length_delimited )
             {
@@ -236,12 +155,30 @@ namespace boost { namespace rpc { namespace protocol_buffer { namespace detail {
 
             if( is.remaining() >= size.value )
             {
-                (c.*p) = std::string( po, size.value );
+                str = std::string( po, size.value );
                 is.skip(size.value);
                 error = false;
                 return;
             }
             error = true;
+        }
+
+        template<typename T, typename Flags>
+        void unpack( boost::optional<T>& value, const char* name, Flags key, boost::false_type _is_not_fundamental )
+        {
+            if( !value )
+                value = T();
+            unpack( *value, name, key, boost::is_fundamental<T>::type() );
+        }
+
+        /**
+         *  This is the method called by the visitor, it gets dispatched to the proper
+         *  unpack mehtod.
+         */
+        template<typename Class, typename T, typename Flags>
+        void accept_member( Class& c, T (Class::*p), const char* name, Flags key )
+        {
+            unpack( c.*p, name, key, typename boost::is_fundamental<T>::type() );
         }
         
         template<typename Class, typename Field, typename Alloc, template<typename,typename> class Container, typename Flags>
@@ -299,9 +236,6 @@ namespace boost { namespace rpc { namespace protocol_buffer { namespace detail {
                 return;
             }
         }
-
-
-
 
         template<typename Class>
         void not_found( Class c, uint32_t field )

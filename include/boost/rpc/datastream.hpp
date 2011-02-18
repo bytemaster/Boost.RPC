@@ -33,6 +33,7 @@ struct datastream
             read((char*)&d, sizeof(d) );
             return *this;
         }
+
         inline void skip( uint32_t s )
         {
             m_pos += s;
