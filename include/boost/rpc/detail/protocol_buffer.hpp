@@ -2,13 +2,12 @@
 #define _BOOST_RPC_DETAIL_PROTOCOL_BUFFERS_HPP_
 #include <boost/rpc/datastream.hpp>
 #include <boost/rpc/varint.hpp>
+#include <boost/rpc/errors.hpp>
 #include <boost/idl/reflect.hpp>
 #include <boost/optional.hpp>
+#include <boost/throw_exception.hpp>
 
 namespace boost { namespace rpc { namespace protocol_buffer { 
-
-    template<typename T>
-    void pack( std::vector<char>& msg, const T& v );
 
 namespace detail {
 
@@ -83,7 +82,7 @@ namespace detail {
         {
             if( key != m_field || m_type != get_wire_type<T>::value )
             {
-                std::cerr << "Error unpacking field '"<<name<<"', key/type mismatch\n";
+                BOOST_THROW_EXCEPTION( boost::rpc::protocol_buffer::key_type_mismatch(name) );
                 error = true;
                 return;
             }
@@ -100,6 +99,7 @@ namespace detail {
             if( key != m_field || m_type != get_wire_type<T>::value )
             {
                 std::cerr << "Error unpacking field '"<<name<<"', key/type mismatch\n";
+                BOOST_THROW_EXCEPTION( boost::rpc::protocol_buffer::key_type_mismatch(name) );
                 error = true;
                 return;
             }
@@ -115,6 +115,7 @@ namespace detail {
             else
             {
                 std::cerr << "Error unpacking field '"<<name<<"', size is larger than remaining datastream\n";
+                BOOST_THROW_EXCEPTION( boost::rpc::protocol_buffer::field_size_larger_than_buffer(name) );
                 error = true;
             }
             is.skip(size);
@@ -126,6 +127,7 @@ namespace detail {
             if( key != m_field || m_type != varint )
             {
                 std::cerr << "Error unpacking field '"<<name<<"', key/type mismatch\n";
+                BOOST_THROW_EXCEPTION( boost::rpc::protocol_buffer::key_type_mismatch(name) );
                 error = true;
                 return;
             }
@@ -138,6 +140,7 @@ namespace detail {
             if( key != m_field || m_type != varint )
             {
                 std::cerr << "Error unpacking field '"<<name<<"', key/type mismatch\n";
+                BOOST_THROW_EXCEPTION( boost::rpc::protocol_buffer::key_type_mismatch(name) );
                 error = true;
                 return;
             }
@@ -151,6 +154,7 @@ namespace detail {
             if( key != m_field || m_type != length_delimited )
             {
                 std::cerr << "Error unpacking field '"<<name<<"', key/type mismatch\n";
+                BOOST_THROW_EXCEPTION( boost::rpc::protocol_buffer::key_type_mismatch(name) );
                 error = true;
                 return;
             }
@@ -192,6 +196,7 @@ namespace detail {
             if( key != m_field || m_type != length_delimited )
             {
                 std::cerr << "Error unpacking field '"<<name<<"', key/type mismatch\n";
+                BOOST_THROW_EXCEPTION( boost::rpc::protocol_buffer::key_type_mismatch(name) );
                 error = true;
                 return;
             }
@@ -212,6 +217,7 @@ namespace detail {
             else
             {
                 std::cerr << "Error unpacking field '"<<name<<"', size is larger than remaining datastream\n";
+                BOOST_THROW_EXCEPTION( boost::rpc::protocol_buffer::field_size_larger_than_buffer(name) );
                 error = true;
             }
             is.skip(size);
@@ -224,6 +230,7 @@ namespace detail {
             if( key != m_field || m_type != length_delimited )
             {
                 std::cerr << "Error unpacking field '"<<name<<"', key/type mismatch\n";
+                BOOST_THROW_EXCEPTION( boost::rpc::protocol_buffer::key_type_mismatch(name) );
                 error = true;
                 return;
             }
@@ -245,7 +252,7 @@ namespace detail {
         template<typename Class>
         void not_found( Class c, uint32_t field )
         {
-            std::cerr<<"NOT FOUND FIELD "<< field <<std::endl;
+            BOOST_THROW_EXCEPTION( boost::rpc::protocol_buffer::field_not_found() );
         }
 
     };
@@ -338,14 +345,14 @@ class pack_message_visitor
     template<typename Flags>
     void pack( const signed_int& value, const char* name, Flags key, boost::false_type _is_not_fundamental )
     {
-        m_os << unsigned_int( uint32_t(key) << 3 | varint );
-        m_os << value;
+         m_os << unsigned_int( uint32_t(key) << 3 | varint );
+         m_os << value;
     }
     template<typename Flags>
     void pack( const unsigned_int& value, const char* name, Flags key, boost::false_type _is_not_fundamental )
     {
-        m_os << unsigned_int( uint32_t(key) << 3 | varint );
-        m_os << value;
+         m_os << unsigned_int( uint32_t(key) << 3 | varint );
+         m_os << value;
     }
     template<typename Flags>
     void pack( const std::string& value, const char* name, Flags key, boost::false_type _is_not_fundamental )
@@ -354,6 +361,21 @@ class pack_message_visitor
          uint32_t size = value.size();
          m_os <<unsigned_int( size );
          m_os.write(  value.c_str(), size );
+    }
+
+    template<typename T, typename Flags>
+    void pack( const boost::optional<T>& value, const char* name, Flags key, boost::false_type _is_not_fundamental )
+    {
+        if( !!value )
+            pack( *value, name, key, boost::is_fundamental<T>::type() );
+    }
+    template<typename T, typename Flags>
+    void pack( const typename boost::rpc::protocol_buffer::required<T>& value, const char* name, Flags key, boost::false_type _is_not_fundamental )
+    {
+        if( !!value )
+            pack( *value, name, key, boost::is_fundamental<T>::type() );
+        else    
+            BOOST_THROW_EXCEPTION( boost::rpc::protocol_buffer::required_field_not_set() );
     }
     
     template<typename Class, typename Field, typename Alloc, template<typename,typename> class Container, typename Flags>
@@ -381,14 +403,52 @@ class pack_message_visitor
     template<typename Class>
     void not_found( Class c, uint32_t field )
     {
-        std::cerr<<"NOT FOUND FIELD "<< field <<std::endl;
+        BOOST_THROW_EXCEPTION( boost::rpc::protocol_buffer::field_not_found() );
     }
 
     private:
         boost::rpc::datastream<DataStreamType>& m_os;
 };
 
-} } } } // boost::rpc::protocol_buffer::detail
+} // namespace detail 
+
+    template<typename T>
+    size_t packsize( const T& v )
+    {
+        boost::rpc::datastream<boost::rpc::packsize>         ps;
+        detail::pack_message_visitor<boost::rpc::packsize>   size_visitor( ps );
+        visit( const_cast<T&>(v), size_visitor, -1 );
+        return ps.tellp();
+    }
+    template<typename T>
+    void pack( char* loc, size_t loc_size, const T& v )
+    {
+        boost::rpc::datastream<char*>         ds(loc, loc_size);
+        detail::pack_message_visitor<char*>   pack_visitor( ds );
+        visit( v, pack_visitor, -1 );
+    }
+    template<typename T>
+    void pack( std::vector<char>& msg, const T& v )
+    {
+        msg.resize(packsize(v));
+        pack( &msg.front(), msg.size(), v );
+    }
+    template<typename T>
+    void unpack( const char* msg, size_t msg_size, T& v )
+    {
+        boost::rpc::datastream<const char*> ds(msg,msg_size);
+        detail::unpack_message_visitor( ds, v );
+    }
+
+    template<typename T>
+    void unpack( const std::vector<char>& msg, T& v )
+    {
+        if( msg.size() )
+            unpack( &msg.front(), msg.size(), v );
+    }
+
+
+} } }// boost::rpc::protocol_buffer
 
 #endif //  _BOOST_RPC_DETAIL_PROTOCOL_BUFFERS_HPP_
 

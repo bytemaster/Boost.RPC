@@ -82,9 +82,15 @@ int main( int argc, char** argv )
     boost::rpc::protocol_buffer::unpack( msg, t1_out );
     std::cerr << boost::rpc::to_json(t1_out);
 
+try {
     Test1a t1a_out;
     boost::rpc::protocol_buffer::unpack( msg, t1a_out );
     std::cerr << boost::rpc::to_json(t1a_out);
+}
+catch ( const boost::rpc::protocol_buffer::key_type_mismatch& e )
+{
+    std::cerr << "Caught Expected Error " << boost::diagnostic_information(e) << std::endl;
+}
 
     Test1b t1b_out;
     boost::rpc::protocol_buffer::unpack( msg, t1b_out );
