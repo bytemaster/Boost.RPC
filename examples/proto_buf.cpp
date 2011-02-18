@@ -90,6 +90,26 @@ int main( int argc, char** argv )
     boost::rpc::protocol_buffer::unpack( msg, t1b_out );
     std::cerr << boost::rpc::to_json(t1b_out);
 
+    Test2 t2_in;
+    t2_in.x = 123;
+    t2_in.y = -456;
+    t2_in.vec.push_back( Test1(9,"Hi"));
+    t2_in.vec.push_back( Test1(8,"Dan"));
+    t2_in.vec.push_back( Test1(7,"Win!"));
+    t2_in.vec2.push_back( "goodbye" );
+    t2_in.vec2.push_back( "world" );
+    t2_in.a = "testinga";
+    t2_in.b = "testingb";
+    t2_in.c = "testingc";
+
+    std::cerr << boost::rpc::to_json(t2_in);
+    boost::rpc::protocol_buffer::pack( msg, t2_in );
+    std::cerr << hex_dump( &msg.front(), msg.size() ) << std::endl;
+
+    Test2 t2_out;
+    boost::rpc::protocol_buffer::unpack( msg, t2_out );
+    std::cerr << boost::rpc::to_json(t2_out);
+
 #if 0
     for( int32_t i = -2; i <= 2; ++i )
     {
@@ -113,17 +133,6 @@ int main( int argc, char** argv )
         std::cerr << 150 << "] " << hex_dump( ss.str().c_str(), ss.str().size() ) << std::endl;
         }
     {
-    Test2 t2;
-    t2.x = 123;
-    t2.y = -456;
-    t2.vec.push_back( Test1(9,"Hi"));
-    t2.vec.push_back( Test1(8,"Dan"));
-    t2.vec.push_back( Test1(7,"Win!"));
-    t2.vec2.push_back( "goodbye" );
-    t2.vec2.push_back( "world" );
-    t2.a = "testinga";
-    t2.b = "testingb";
-    t2.c = "testingc";
     std::stringstream ss;
     pack_message pm(ss);
     visit( t2, pm );

@@ -5,7 +5,12 @@
 #include <boost/idl/reflect.hpp>
 #include <boost/optional.hpp>
 
-namespace boost { namespace rpc { namespace protocol_buffer { namespace detail {
+namespace boost { namespace rpc { namespace protocol_buffer { 
+
+    template<typename T>
+    void pack( std::vector<char>& msg, const T& v );
+
+namespace detail {
 
     enum protocol_buf_wire_types
     {
@@ -285,7 +290,7 @@ class pack_message_visitor
     pack_message_visitor( boost::rpc::datastream<DataStreamType>& os )
     :m_os(os){}
 
-    friend inline void visit( const std::string& str, pack_message_visitor& v )
+    friend inline void visit( const std::string& str, pack_message_visitor& v, int field = -1 )
     { 
         v.m_os.write( str.c_str(), str.size() );
     }
@@ -301,13 +306,13 @@ class pack_message_visitor
     {
          m_os <<unsigned_int( uint32_t(key) << 3 | length_delimited );
     
-         std::stringstream ss;
-         pack_message_visitor pm(ss);
-         visit( c.*p, pm );
-    
-         unsigned_int s(ss.str().size() );
+         std::vector<char> buf;
+         boost::rpc::protocol_buffer::pack(buf, c.*p );
+
+         unsigned_int s(buf.size());
          m_os << s;
-         m_os.write( ss.str().c_str(), s.value );
+         if( buf.size() )
+             m_os.write( &buf.front(), s.value );
     }
     
     template<typename Class, typename Flags>
@@ -406,13 +411,13 @@ class pack_message_visitor
              {
                  m_os <<unsigned_int( uint32_t(key) << 3 | length_delimited );
     
-                 std::stringstream ss;
-                 pack_message_visitor pm(ss);
-                 visit( *itr, pm );
+                 std::vector<char> buf;
+                 boost::rpc::protocol_buffer::pack(buf, *itr );
     
-                 unsigned_int s(ss.str().size() );
+                 unsigned_int s(buf.size());
                  m_os <<s;
-                 m_os.write( ss.str().c_str(), s.value );
+                 if( buf.size() )
+                     m_os.write( &buf.front(), s.value );
                  ++itr;
              }
          }
