@@ -4,6 +4,7 @@
 #include <boost/rpc/varint.hpp>
 #include <boost/idl/reflect.hpp>
 #include <boost/rpc/detail/protocol_buffer.hpp>
+#include <boost/optional.hpp>
 
 namespace boost { namespace rpc { namespace protocol_buffer {
     template<typename T>
@@ -40,6 +41,19 @@ namespace boost { namespace rpc { namespace protocol_buffer {
         if( msg.size() )
             unpack( &msg.front(), msg.size(), v );
     }
+
+    template<typename T>
+    struct required : public boost::optional<T>
+    {
+        typedef boost::optional<T> base;
+        required(){}
+        required( const T& v )
+        :boost::optional<T>(v){}
+
+        using base::operator=;
+        using base::operator*;
+        using base::operator!;
+    };
 
 } } } // namespace boost::rpc
 
