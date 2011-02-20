@@ -8,11 +8,40 @@ The Boost RPC library will leverage Boost.IDL to abstract
 the difference between classes on remote machines and local machines.
 
 The library will aim to support any number of different RPC protocols 
-and will provide built-in support for Google Protocol Buffers and
-JSON RPC.
+and will provide built-in support for Google Protocol Buffers,
+JSON RPC, XML RPC, and any Boost.Serialization archive formats.
 
+### Warning ###
+    This code is in early alpha phase.  I welcome feedback and help in
+    defining the scope of this library.  
 
-### Google Protocol Buffers ###
+### Notice ###
+
+    This library is not part of the official Boost C++ library, but
+    is written, to the best of my ability, to follow the best practices
+    established by the Boost community and with the hope of being 
+    considered for inclusion with a future Boost release.
+
+### Requirements ###
+
+This library is being written with the following requirements in mind:
+
+ - C++ as primary language for both sides of the RPC.
+ - No code generation required for C++/C++ interoperability
+ - Transparently support Google Protocol Buffers, JSON-RPC, XML-RPC, and
+    Boost.Serialization.
+ - Generate .proto file from reflected type-info to enable non-C++
+    programs to interact.
+ - Network layer is abstraction allowing 3rd parties to provide TCP/IP,
+    UDP, UDT, or other transport mechinism. 
+
+### Dependencies ###
+ - Boost.IDL will be used to provide reflection/abstraction of class
+    interfaces and message structures.
+ - Boost.Optional will be used for optional message fields.
+ - Boost.Function will be used for generic callbacks/delegates.
+
+### Google Protocol Buffers with Boost.RPC ###
 
 Google Protocol Buffers are a very nice, effecient, means of defining
 a message such that it is both forward and backward compatible. Google
@@ -85,9 +114,3 @@ You can unpack a message like this:
 
 
 
-### Notice ###
-
-    This library is not part of the official Boost C++ library, but
-    is written, to the best of my ability, to follow the best practices
-    established by the Boost community and with the hope of being 
-    considered for inclusion with a future Boost release.

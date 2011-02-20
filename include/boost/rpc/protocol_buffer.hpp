@@ -8,19 +8,6 @@
 namespace boost { namespace rpc { namespace protocol_buffer {
 
     template<typename T>
-    struct required : public boost::optional<T>
-    {
-        typedef boost::optional<T> base;
-        required(){}
-        required( const T& v )
-        :boost::optional<T>(v){}
-
-        using base::operator=;
-        using base::operator*;
-        using base::operator!;
-    };
-
-    template<typename T>
     size_t packsize( const T& v );
 
     template<typename T>
@@ -30,10 +17,34 @@ namespace boost { namespace rpc { namespace protocol_buffer {
     void pack( std::vector<char>& msg, const T& v );
 
     template<typename T>
+    void pack( std::string& msg, const T& v );
+
+    template<typename T>
     void unpack( const char* msg, size_t msg_size, T& v );
 
     template<typename T>
     void unpack( const std::vector<char>& msg, T& v );
+
+
+    /**
+     *  Used for RPC template parameter that controls hwo
+     *  rpc::client and rpc::server pack/unpack parameters
+     *  and results.
+     */
+    struct protocol
+    {
+        template<typename T>
+        static void unpack( const char* msg, size_t msg_size, T& v )
+        { protocol_buffer::unpack(msg,msg_size,v); }
+
+        template<typename T>
+        static void pack( char* msg, size_t msg_size, T& v )
+        { protocol_buffer::pack(msg,msg_size,v); }
+
+        template<typename T>
+        static size_t packsize ( const T& v )
+        { return protocol_buffer::packsize(v); }
+    };
 
 } } } // namespace boost::rpc
 

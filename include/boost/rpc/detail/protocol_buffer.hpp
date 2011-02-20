@@ -3,9 +3,12 @@
 #include <boost/rpc/datastream.hpp>
 #include <boost/rpc/varint.hpp>
 #include <boost/rpc/errors.hpp>
+#include <boost/rpc/required.hpp>
 #include <boost/idl/reflect.hpp>
 #include <boost/optional.hpp>
 #include <boost/throw_exception.hpp>
+
+#include <iostream>
 
 namespace boost { namespace rpc { namespace protocol_buffer { 
 
@@ -177,7 +180,14 @@ namespace detail {
         {
             if( !value )
                 value = T();
-            unpack( *value, name, key, boost::is_fundamental<T>::type() );
+            unpack( *value, name, key, typename boost::is_fundamental<T>::type() );
+        }
+        template<typename T, typename Flags>
+        void unpack( boost::rpc::required<T>& value, const char* name, Flags key, boost::false_type _is_not_fundamental )
+        {
+            if( !value )
+                value = T();
+            unpack( *value, name, key, typename boost::is_fundamental<T>::type() );
         }
 
         /**
@@ -258,8 +268,8 @@ namespace detail {
     };
 
 
-    template<typename T, typename T2>
-    bool unpack_field( boost::rpc::datastream<T2>& is, T& val, uint32_t key, int type )
+    template<typename T, typename T2, typename Flags>
+    bool unpack_field( boost::rpc::datastream<T2>& is, T& val, Flags key, int type )
     {
         unpack_field_visitor<T2> upfv(is, key, type);
         visit( val, upfv, key );
@@ -367,13 +377,13 @@ class pack_message_visitor
     void pack( const boost::optional<T>& value, const char* name, Flags key, boost::false_type _is_not_fundamental )
     {
         if( !!value )
-            pack( *value, name, key, boost::is_fundamental<T>::type() );
+            pack( *value, name, key, typename boost::is_fundamental<T>::type() );
     }
     template<typename T, typename Flags>
-    void pack( const typename boost::rpc::protocol_buffer::required<T>& value, const char* name, Flags key, boost::false_type _is_not_fundamental )
+    void pack( const typename boost::rpc::required<T>& value, const char* name, Flags key, boost::false_type _is_not_fundamental )
     {
         if( !!value )
-            pack( *value, name, key, boost::is_fundamental<T>::type() );
+            pack( *value, name, key, typename boost::is_fundamental<T>::type() );
         else    
             BOOST_THROW_EXCEPTION( boost::rpc::protocol_buffer::required_field_not_set() );
     }
@@ -415,8 +425,8 @@ class pack_message_visitor
     template<typename T>
     size_t packsize( const T& v )
     {
-        boost::rpc::datastream<boost::rpc::packsize>         ps;
-        detail::pack_message_visitor<boost::rpc::packsize>   size_visitor( ps );
+        boost::rpc::datastream<size_t>         ps;
+        detail::pack_message_visitor<size_t>   size_visitor( ps );
         visit( const_cast<T&>(v), size_visitor, -1 );
         return ps.tellp();
     }
@@ -433,6 +443,13 @@ class pack_message_visitor
         msg.resize(packsize(v));
         pack( &msg.front(), msg.size(), v );
     }
+    template<typename T>
+    void pack( std::string& msg, const T& v )
+    {
+        msg.resize(packsize(v));
+        pack( msg.c_str(), msg.size(), v );
+    }
+
     template<typename T>
     void unpack( const char* msg, size_t msg_size, T& v )
     {

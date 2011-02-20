@@ -4,7 +4,7 @@
 #include <boost/type_traits/is_fundamental.hpp>
 namespace boost { namespace rpc {
 
-struct packsize{};
+struct pack_size{};
 
 /**
  *  The purpose of this datastream is to provide a fast, effecient, means
@@ -92,7 +92,7 @@ struct datastream
 };
 
 template<>
-struct datastream<packsize>
+struct datastream<size_t>
 {
     datastream( size_t init_size = 0):m_size(init_size){};
     template<typename DATA>
