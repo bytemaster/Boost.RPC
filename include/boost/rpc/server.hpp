@@ -1,6 +1,12 @@
 #ifndef _BOOST_RPC_SERVER_HPP_
 #define _BOOST_RPC_SERVER_HPP_
+#include <boost/rpc/debug.hpp>
 #include <boost/rpc/connection.hpp>
+#include <boost/rpc/message.hpp>
+#include <boost/rpc/json.hpp>
+#include <boost/function.hpp>
+#include <string>
+#include <map>
 #include <vector>
 
 namespace boost { namespace rpc {
@@ -18,12 +24,13 @@ class server
         void add_connection( const boost::shared_ptr<connection<Protocol> >& c );
 
     private:
-        void handle_message( const boost::connection::ptr& con, const message& m )
+        void handle_message( const typename boost::rpc::connection<Protocol>::ptr& con, const message& m )
         {
+//           dlog( "handle message: ", to_json(m) );
            if( m.method )
            {
                 method_map::iterator itr = std::find( m_methods.begin(), m_methods.end(), *m.method );
-                if( itr != method_map.end() )
+                if( itr != m_methods.end() )
                 {
                     message reply;
                     reply.id = m.id;
@@ -39,6 +46,7 @@ class server
                     boost::rpc::error_object err;
                     err.code = -1;
                     err.message = "Unknown method name '" + *m.method + "'";
+                    elog( "Unknown method name %1%", *m.method );
 
                     message reply;
                     reply.id = m.id;
@@ -47,12 +55,12 @@ class server
                 }
            }
         }
-
-        typedef std::vector< std::pair< std::string,
-                             boost::function<std::string(const std::string&)> > method_map;
+        
+        typedef std::pair<std::string,boost::function<std::string(const std::string&)> > name_func;
+        typedef std::vector<name_func> method_map;
         
         method_map                           m_methods;
-        std::list<connection<Protocol>::ptr> m_connections;
+        std::list<typename connection<Protocol>::ptr> m_connections;
 };
 
 

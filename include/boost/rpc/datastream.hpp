@@ -1,6 +1,7 @@
 #ifndef _BOOST_RPC_DATASTREAM_HPP_
 #define _BOOST_RPC_DATASTREAM_HPP_
 #include <boost/static_assert.hpp>
+#include <stdint.h>
 #include <boost/type_traits/is_fundamental.hpp>
 namespace boost { namespace rpc {
 

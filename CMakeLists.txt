@@ -9,7 +9,7 @@ boost_project("RPC"
   )
 
 if( ENABLE_EXAMPLES )
-    option( ENABLE_IDL_EXAMPLES "Build Boost.IDL Examples" ON )
+    option( ENABLE_RPC_EXAMPLES "Build Boost.IDL Examples" ON )
     if( ENABLE_RPC_EXAMPLES )
         boost_add_executable( rpc_protobuf  SOURCES examples/proto_buf.cpp   LINK_BOOST_LIBRARIES )
         boost_add_executable( rpc_client    SOURCES examples/rpc_client.cpp  LINK_BOOST_LIBRARIES system serialization)
@@ -17,5 +17,4 @@ if( ENABLE_EXAMPLES )
     endif( ENABLE_RPC_EXAMPLES )
 endif( ENABLE_EXAMPLES )
 
-add_subdirectory(doc)
 add_subdirectory(include)

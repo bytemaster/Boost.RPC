@@ -14,11 +14,11 @@ using boost::optional;
  */
 struct error_object
 {
-    error_object( int32_t c )
-    :code(c);
+    error_object( int32_t c = 0 )
+    :code(c){}
 
     error_object( int32_t c, const std::string& msg )
-    :code(c),message(msg);
+    :code(c),message(msg){}
 
     required<signed_int>  code;
     optional<std::string> message;

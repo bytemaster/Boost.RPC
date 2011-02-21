@@ -3,6 +3,7 @@
 #include <boost/utility/result_of.hpp>
 #include <boost/rpc/connection.hpp>
 #include <boost/optional.hpp>
+#include <iostream>
 
 namespace boost { namespace rpc {
 
@@ -32,13 +33,13 @@ class client
             closure( Functor f):m_fun(f){}
             void operator()( const optional<std::string>& result, int err )
             {
-               // typedef typename boost::result_of<Functor>::type rt;
-              //  rt r;
-              //  typename boost::result_of<int()>::type r;
                 Result r;
-
-                //typename boost::remove_reference<typename boost::remove_const<typename Functor::result_type>::type>::type r;
+                if( !result ) {
+                     m_fun( r, -2 ); 
+                     return;
+                }
                 try {
+                    std::cerr<<"closure result size: "<< result->size() << "\n";
                     Protocol::unpack( result->c_str(), result->size(), r );
                     m_fun( r, err ); 
                 } 
