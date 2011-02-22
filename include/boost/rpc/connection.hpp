@@ -2,7 +2,7 @@
 #define _BOOST_RPC_CONNECTION_HPP
 #include <boost/enable_shared_from_this.hpp>
 #include <boost/function.hpp>
-
+#include <boost/bind.hpp>
 #include <boost/rpc/message.hpp>
 
 namespace boost { namespace rpc {

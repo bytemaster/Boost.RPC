@@ -1,6 +1,10 @@
 #ifndef _BOOST_RPC_CLIENT_HPP_
 #define _BOOST_RPC_CLIENT_HPP_
 #include <boost/utility/result_of.hpp>
+#include <boost/bind.hpp>
+#include <boost/rpc/message.hpp>
+#include <boost/rpc/json.hpp>
+#include <boost/rpc/debug.hpp>
 #include <boost/rpc/connection.hpp>
 #include <boost/optional.hpp>
 #include <iostream>
@@ -75,6 +79,7 @@ class client
         {
             message msg( name );
             msg.id                    = next_req_id;
+            elog( "call: %1%", to_json(msg) );
             m_closures[next_req_id++] = closure<Result, Closure>(c);
             m_con->send_message( msg );
         }
@@ -111,6 +116,7 @@ class client
         }
         void handle_message( const message& m )
         {
+            elog( "handle message: %1%", to_json(m) );
             if( !!m.id )
             {
                 closure_map::iterator itr = m_closures.find( *m.id );

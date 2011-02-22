@@ -8,6 +8,18 @@
 #include <boost/bind.hpp>
 #include <boost/asio.hpp>
 
+struct String
+{
+    String( const std::string& s = "" )
+    :value(s){}
+    std::string value;
+};
+
+BOOST_IDL_REFLECT(String, BOOST_PP_SEQ_NIL, (value) )
+
+String ping( const String& s ){
+    return s;
+}
 
 struct rpc_server
 {
@@ -41,12 +53,15 @@ int main( int argc, char** argv )
     boost::asio::io_service      io;
     
     boost::rpc::server<rpc::protocol_buffer::protocol> rps;
+    rps.add_method( "ping", ping );
 
     rpc_server serv( io, boost::asio::ip::tcp::endpoint( boost::asio::ip::tcp::v4(),
                     lexical_cast<uint16_t>(argv[1])) );
-
+    
     serv.start_accept();
+    serv.new_connection = boost::bind(&boost::rpc::server<rpc::protocol_buffer::protocol>::add_connection, &rps, _1);
 
+    new boost::asio::io_service::work(io);
     io.run();
     return 0;
 }

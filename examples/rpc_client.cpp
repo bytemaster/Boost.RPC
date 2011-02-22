@@ -8,7 +8,7 @@
 
 int handle_result( const std::string& r, int err )
 {
-    std::cerr << "Reply '"<<r<<"'\n";
+    std::cerr << "Reply '"<<r<<"'  err: " << err << "\n";
     return 0;
 }
 
@@ -29,7 +29,10 @@ int main( int argc, char** argv )
 
     m_client.call<std::string>( std::string("ping"),
                   &handle_result );//, std::string( "Hello World!" )  );
+    m_client.call<std::string>( std::string("ping"),
+                  &handle_result );//, std::string( "Hello World!" )  );
 
+    new boost::asio::io_service::work(io);
     io.run(); 
     return 0;
 }

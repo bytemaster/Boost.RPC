@@ -1,6 +1,8 @@
 #ifndef _BOOST_RPC_TCP_CONNECTION_HPP_
 #define _BOOST_RPC_TCP_CONNECTION_HPP_
 #include <boost/rpc/connection.hpp>
+#include <boost/rpc/debug.hpp>
+#include <boost/bind.hpp>
 #include <boost/asio.hpp>
 
 namespace boost { namespace rpc { namespace tcp {
@@ -33,6 +35,7 @@ namespace boost { namespace rpc { namespace tcp {
             void send_message( const message& m )
             {
                 uint32_t ps = Protocol::packsize(m);
+                elog( "packsize %1%", ps );
                 if( ps ) {
                     char* data = new char[ps+sizeof(ps)];
                     memcpy( data, &ps, sizeof(ps) );
@@ -60,17 +63,21 @@ namespace boost { namespace rpc { namespace tcp {
 
             void handle_read_msg_body( const boost::system::error_code& err, std::size_t bytes_transfered )
             {
-                if( !err ) {
+                dlog( "size %1% m_rbuf.size() %2%", bytes_transfered, m_rbuf.size() );
+                if( err ) elog( "error! %1%", err.message() );
+                if( !err && bytes_transfered ) {
                     message msg;
                     Protocol::unpack( &m_rbuf.front(), bytes_transfered, msg );
                     start_read_message();
                     this->received_message(msg);
                 } else {
+                    elog( "error" );
                     this->connection_closed();
                 }
             }
             void handle_read_msg_size(const boost::system::error_code& err, std::size_t bytes_transfered )
             {
+                dlog( "transfered %1%  m_msg_size %2% ", bytes_transfered, m_msg_size );
                 if( !err ) {
                     if( m_msg_size > 1024 * 1024 ) {
                         assert( !"Message size too big!" );
@@ -86,6 +93,7 @@ namespace boost { namespace rpc { namespace tcp {
                         start_read_message();
                     }
                 } else {
+                    elog( "error! %1%", err.message() );
                     this->connection_closed();
                 }
             }

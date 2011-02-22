@@ -9,6 +9,7 @@
 #include <boost/throw_exception.hpp>
 
 #include <iostream>
+#include <boost/rpc/debug.hpp>
 
 namespace boost { namespace rpc { namespace protocol_buffer { 
 
@@ -62,8 +63,8 @@ namespace detail {
 
         template<typename Class>
         void end( Class, const char* anem ){}
-
-
+    
+        /*
         friend inline void visit( std::string& str, unpack_field_visitor& v, uint32_t f = -1 )
         { 
             unsigned_int size;
@@ -76,6 +77,7 @@ namespace detail {
             }
             v.error = !v.is.valid();
         }
+        */
 
         /**
          *  This method handles all fundamental types
@@ -180,6 +182,7 @@ namespace detail {
         {
             if( !value )
                 value = T();
+            wlog( "unapcking optional %1%", name );
             unpack( *value, name, key, typename boost::is_fundamental<T>::type() );
         }
         template<typename T, typename Flags>
@@ -187,6 +190,7 @@ namespace detail {
         {
             if( !value )
                 value = T();
+            wlog( "unapcking required %1%", name );
             unpack( *value, name, key, typename boost::is_fundamental<T>::type() );
         }
 
@@ -272,8 +276,21 @@ namespace detail {
     bool unpack_field( boost::rpc::datastream<T2>& is, T& val, Flags key, int type )
     {
         unpack_field_visitor<T2> upfv(is, key, type);
-        visit( val, upfv, key );
+        boost::idl::reflector<T>::visit( val, upfv, key );
         return !upfv.error;
+    }
+    template<typename T2, typename Flags>
+    bool unpack_field( boost::rpc::datastream<T2>& is, std::string& val, Flags key, int type )
+    {
+        unsigned_int size;
+        is >> size;
+        T2 p = is.pos();
+        is.skip(size.value);
+        if( is.valid() )
+        {
+            val = std::string( p, is.pos() );
+        }
+        return !is.valid();
     }
 
 
@@ -307,10 +324,12 @@ class pack_message_visitor
     pack_message_visitor( boost::rpc::datastream<DataStreamType>& os )
     :m_os(os){}
 
+    /*
     friend inline void visit( const std::string& str, pack_message_visitor& v, int field = -1 )
     { 
         v.m_os.write( str.c_str(), str.size() );
     }
+    */
     
     template<typename Class>
     void start( Class, const char* anem ){}
@@ -383,7 +402,7 @@ class pack_message_visitor
     void pack( const typename boost::rpc::required<T>& value, const char* name, Flags key, boost::false_type _is_not_fundamental )
     {
         if( !!value )
-            pack( *value, name, key, typename boost::is_fundamental<T>::type() );
+            pack( *value, name, key, typename boost::is_fundamental<T>::type() ); 
         else    
             BOOST_THROW_EXCEPTION( boost::rpc::protocol_buffer::required_field_not_set() );
     }
@@ -397,6 +416,8 @@ class pack_message_visitor
              typename Container<Field,Alloc >::const_iterator end = (c.*p).end();
              while( itr != end )
              {
+                pack( *itr, name, key, typename boost::is_fundamental<Field>::type() );
+                /*
                  m_os <<unsigned_int( uint32_t(key) << 3 | length_delimited );
     
                  std::vector<char> buf;
@@ -406,6 +427,7 @@ class pack_message_visitor
                  m_os <<s;
                  if( buf.size() )
                      m_os.write( &buf.front(), s.value );
+                     */
                  ++itr;
              }
          }
@@ -427,7 +449,7 @@ class pack_message_visitor
     {
         boost::rpc::datastream<size_t>         ps;
         detail::pack_message_visitor<size_t>   size_visitor( ps );
-        visit( const_cast<T&>(v), size_visitor, -1 );
+        boost::idl::reflector<T>::visit( const_cast<T&>(v), size_visitor, -1 );
         return ps.tellp();
     }
     template<typename T>
@@ -435,7 +457,7 @@ class pack_message_visitor
     {
         boost::rpc::datastream<char*>         ds(loc, loc_size);
         detail::pack_message_visitor<char*>   pack_visitor( ds );
-        visit( v, pack_visitor, -1 );
+        boost::idl::reflector<T>::visit( v, pack_visitor, -1 );
     }
     template<typename T>
     void pack( std::vector<char>& msg, const T& v )

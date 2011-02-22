@@ -1,6 +1,6 @@
 #ifndef __BOOST_RPC_MESSAGE_HPP_
 #define __BOOST_RPC_MESSAGE_HPP_
-#include <boost/idl/idl.hpp>
+#include <boost/idl/reflect.hpp>
 #include <boost/rpc/varint.hpp>
 #include <boost/rpc/required.hpp>
 #include <boost/optional.hpp>
@@ -46,6 +46,7 @@ struct message
     optional<std::string>    result;    ///< Return value
     optional<error_object>   error;     ///< Used in case of errors
 };
+
 
 } } // namespace boost::rpc
 

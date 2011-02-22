@@ -3,6 +3,8 @@
 #include <boost/idl/reflect.hpp>
 #include <boost/rpc/datastream.hpp>
 #include <boost/rpc/varint.hpp>
+#include <boost/rpc/required.hpp>
+#include <boost/rpc/debug.hpp>
 #include <sstream>
 #include <iostream>
 #include <iomanip>
@@ -34,36 +36,75 @@ class json_visitor
         m_os<<std::setw(4*depth)<<" "<<"}";
     }
 
-    friend inline void visit( const signed_int& str, json_visitor& v, uint32_t f = -1 )
+    template<typename Flags>
+    inline void add_field( const signed_int& str, const char* name, Flags f )
     {
-        v.m_os << (v.first ? "" : ",\n");
-        v.m_os<<std::setw(4*v.depth)<<" "<<str.value;
-        v.first = false;
+        m_os << (first ? "\n" : ",\n");
+        m_os<<std::setw(4*depth)<<" "<< '"'<<name<< "\" : ";
+        first = true;
+        m_os << (first ? "" : ",\n");
+        m_os<<std::setw(4*depth)<<" "<<str.value;
+        first = false;
     }
-    friend inline void visit( const unsigned_int& str, json_visitor& v, uint32_t f = -1 )
+    template<typename Flags>
+    inline void add_field( const unsigned_int& str, const char* name, Flags f )
     {
-        v.m_os << (v.first ? "" : ",\n");
-        v.m_os<<std::setw(4*v.depth)<<" "<<str.value;
-        v.first = false;
+        m_os << (first ? "\n" : ",\n");
+        m_os<<std::setw(4*depth)<<" "<< '"'<<name<< "\" : ";
+        first = true;
+        m_os << (first ? "" : ",\n");
+        m_os<<std::setw(4*depth)<<" "<<str.value;
+        first = false;
     }
-    friend inline void visit( const std::string& str, json_visitor& v, uint32_t f = -1 )
+    template<typename Flags>
+    inline void add_field( const std::string& str, const char* name, Flags f )
     { 
-        v.m_os << (v.first ? "" : ",\n");
-        v.m_os<<std::setw(0*v.depth)<<" "<<'"'<<str<<'"';
-        v.first = false;
+        if( name != "" )
+        {
+            m_os << (first ? "\n" : ",\n");
+            m_os<<std::setw(4*depth)<<" "<< '"'<<name<< "\" : ";
+            first = true;
+            m_os << (first ? "" : ",\n");
+        }
+        m_os<<std::setw(0*depth)<<" "<<'"'<<str<<'"';
+        first = false;
     }
+    template <typename T, typename Flags>
+    inline void add_field( const boost::optional<T>& o, const char* name, Flags f )
+    { 
+        if( !!o ) add_field( *o, name, f );
+        else
+        {
+            dlog( "%1% was not set", name );
+        }
+    }
+    template <typename T, typename Flags>
+    inline void add_field( const boost::rpc::required<T>& r, const char* name, Flags f )
+    { 
+        if( !!r ) add_field( *r, name, f );
+        else
+        {
+            dlog( "%1% was not set", name );
+        }
+    }
+    
+   template <typename T, typename Flags>
+   void add_field( T f, const char* name, Flags  )
+   {
+        if( name != "" )
+        {
+            m_os << (first ? "\n" : ",\n");
+            m_os<<std::setw(4*depth)<<" "<< '"'<<name<< "\" : ";
+        }
+        first = true;
+        boost::idl::reflector<T>::visit( f, *this );
+        first = false;
+   }
 
    template<typename Class, typename T, typename Flags>
    void accept_member( Class c, T (Class::*p), const char* name, Flags f )
    {
-        m_os << (first ? "\n" : ",\n");
-        m_os<<std::setw(4*depth)<<" "<< '"'<<name<< "\" : ";
-        first = true;
-//        ++depth;
-        visit( c.*p, *this );
-//        --depth;
-//        m_os<<"\n"<<std::setw(4*depth)<<" "<<"}";
-        first = false;
+        add_field(c.*p, name, f);
    }
     template<typename Class, typename Field, typename Alloc, template<typename,typename> class Container, typename Flags>
     void accept_member( Class c, Container<Field,Alloc> (Class::*p), const char* name, Flags key )
@@ -80,7 +121,8 @@ class json_visitor
             if( !first ) 
             m_os<<std::setw(4*depth)<<" ";// << "{";
             first = true;
-            visit( *itr, *this );
+            add_field( *itr, (const char*)"", key );
+ //           boost::idl::reflector<Field>::visit( *itr, *this );
  //           m_os<<"\n"<<std::setw(4*depth)<<" "<<"}";
             ++itr;
             first  = false;
@@ -183,7 +225,7 @@ std::string to_json( const T& v )
 {
     std::ostringstream ss;
     json_visitor jv(ss);
-    visit( v,jv);
+    boost::idl::reflector<T>::visit( v,jv);
     return ss.str();
 }
 

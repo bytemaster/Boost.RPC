@@ -1,3 +1,4 @@
+#include <boost/rpc/message.hpp>
 #include <boost/idl/reflect.hpp>
 #include <boost/rpc/json.hpp>
 #include <boost/rpc/protocol_buffer.hpp>
@@ -115,6 +116,10 @@ catch ( const boost::rpc::protocol_buffer::key_type_mismatch& e )
     Test2 t2_out;
     boost::rpc::protocol_buffer::unpack( msg, t2_out );
     std::cerr << boost::rpc::to_json(t2_out);
+
+    boost::rpc::message m;
+    boost::rpc::protocol_buffer::pack( msg, m );
+
 
 #if 0
     for( int32_t i = -2; i <= 2; ++i )

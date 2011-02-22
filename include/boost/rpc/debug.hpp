@@ -2,6 +2,7 @@
 #define _BOOST_RPC_DEBUG_HPP_
 #define  COLOR_CONSOLE 1
 #include <boost/format.hpp>
+#include <iostream>
 #include <boost/rpc/console_defines.h>
 
 namespace boost { namespace rpc { namespace detail {
