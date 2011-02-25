@@ -34,15 +34,15 @@ namespace boost { namespace rpc { namespace protocol_buffer {
     struct protocol
     {
         template<typename T>
-        static void unpack( const char* msg, size_t msg_size, T& v )
+        static inline void unpack( const char* msg, size_t msg_size, T& v )
         { protocol_buffer::unpack(msg,msg_size,v); }
 
         template<typename T>
-        static void pack( char* msg, size_t msg_size, T& v )
+        static inline void pack( char* msg, size_t msg_size, T& v )
         { protocol_buffer::pack(msg,msg_size,v); }
 
         template<typename T>
-        static size_t packsize ( const T& v )
+        static inline size_t packsize ( const T& v )
         { return protocol_buffer::packsize(v); }
     };
 

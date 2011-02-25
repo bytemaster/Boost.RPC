@@ -12,6 +12,9 @@
 #include <string>
 #include <map>
 #include <vector>
+#include <boost/fusion/algorithm.hpp>
+#include <boost/fusion/container/generation/make_vector.hpp>
+#include <boost/fusion/functional/invocation/invoke_function_object.hpp>
 
 namespace boost { namespace rpc {
 
@@ -32,29 +35,32 @@ class server
        //     c->_closed.connect( boost::bind( &server::handle_message, this, c, _1 ) );
         }
 
-        template<typename Functor>
-        void add_method( const std::string& name, Functor f )
+        template<typename Signature, typename Sequence>
+        void add_method( const std::string& name, const boost::function<Signature>& f )
         {
-            m_methods[name] = rpc_functor<Functor>(f); 
+            m_methods[name] = rpc_functor<Signature,Sequence>(f); 
         }
 
     private:
-        template<typename Functor>
+        template<typename Signature,typename ParamSequence>
         struct rpc_functor
         {
-            rpc_functor( Functor f )
+            rpc_functor( boost::function<Signature> f )
             :m_func(f){}
 
             std::string operator()( const std::string& params )
             {
-                 BOOST_TYPEOF(m_func(params)) r = m_func( params );
+                 ParamSequence seq;
+                 Protocol::unpack( params.c_str(), params.size(), seq );
+                 typedef BOOST_TYPEOF(m_func(params)) rtn_type;
+                 boost::fusion::vector<rtn_type> r = boost::fusion::make_vector(boost::fusion::invoke_function_object( m_func, seq ));
                  size_t s = Protocol::packsize(r);
                  std::string msg;
                  msg.resize(s);
                  Protocol::pack((char*)msg.c_str(), s, r );
                  return msg;
             }
-            Functor m_func;
+            boost::function<Signature> m_func;
         };
         
 

@@ -8,6 +8,8 @@
 #include <boost/rpc/connection.hpp>
 #include <boost/optional.hpp>
 #include <iostream>
+#include <boost/fusion/container/vector.hpp>
+#include <boost/fusion/algorithm.hpp>
 
 namespace boost { namespace rpc {
 
@@ -44,8 +46,9 @@ class client
                 }
                 try {
                     std::cerr<<"closure result size: "<< result->size() << "\n";
-                    Protocol::unpack( result->c_str(), result->size(), r );
-                    m_fun( r, err ); 
+                    boost::fusion::vector<Result> rtn;
+                    Protocol::unpack( result->c_str(), result->size(), rtn );
+                    m_fun( boost::fusion::at_c<0>(rtn), err ); 
                 } 
                 catch ( ... )
                 {
@@ -88,7 +91,7 @@ class client
          *  Use boost::fusion::make_vector(arg1,arg2,arg3,...)
          */
         template<typename Result, typename Closure, typename Params>
-        void call( const std::string& name, Closure c, const Params& params )
+        void call( const std::string& name, Closure c, const Params& params)
         {
             message msg( name );
             size_t param_size = Protocol::packsize( params );

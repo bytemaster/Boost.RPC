@@ -27,7 +27,7 @@ namespace boost { namespace rpc { namespace protocol_buffer {
     {
         field_size_larger_than_buffer( const char* name=0):m_name(name){}
         const char*  name(){ return m_name; }
-        const char*  what()const throw()    { return "field size is larger than bufferh"; }
+        const char*  what()const throw()    { return "field size is larger than buffer"; }
         virtual void rethrow()const         { BOOST_THROW_EXCEPTION(*this);               }
 
         private:

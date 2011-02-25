@@ -7,6 +7,10 @@
 #include <boost/idl/reflect.hpp>
 #include <boost/optional.hpp>
 #include <boost/throw_exception.hpp>
+#include <boost/fusion/container/vector.hpp>
+#include <boost/fusion/algorithm.hpp>
+#include <boost/fusion/support/is_sequence.hpp>
+#include <boost/fusion/sequence/intrinsic/size.hpp>
 
 #include <iostream>
 #include <boost/rpc/debug.hpp>
@@ -22,7 +26,8 @@ namespace detail {
         length_delimited  = 2,
         bit8              = 3, // custom
         bit16             = 4, // custom
-        bit32             = 5
+        bit32             = 5,
+        bit0              = 6  // field is either there or not, size 0
     };
 
     template<typename T, int fund, uint32_t size>
@@ -64,21 +69,6 @@ namespace detail {
         template<typename Class>
         void end( Class, const char* anem ){}
     
-        /*
-        friend inline void visit( std::string& str, unpack_field_visitor& v, uint32_t f = -1 )
-        { 
-            unsigned_int size;
-            v.is >> size;
-            DataStreamType p = v.is.pos();
-            v.is.skip(size.value);
-            if( v.is.valid() )
-            {
-                str = std::string( p, v.is.pos() );
-            }
-            v.error = !v.is.valid();
-        }
-        */
-
         /**
          *  This method handles all fundamental types
          */
@@ -93,6 +83,15 @@ namespace detail {
             }
             is >> value;
             error = !is.valid();
+        }
+        /**
+         *  This method handles all fundamental types
+         */
+        template<typename T, typename Flags>
+        void unpack( T& value, const char* name, Flags key )
+        {
+            dlog( "key %1%  m_field %2%  m_type %3%", key, m_field, m_type );
+            unpack( value, name, key, typename boost::is_fundamental<T>::type() );
         }
         /**
          *  This method handles the general case where T is a nested type 
@@ -183,7 +182,7 @@ namespace detail {
             if( !value )
                 value = T();
             wlog( "unapcking optional %1%", name );
-            unpack( *value, name, key, typename boost::is_fundamental<T>::type() );
+            unpack( *value, name, key,typename boost::is_fundamental<T>::type() ); 
         }
         template<typename T, typename Flags>
         void unpack( boost::rpc::required<T>& value, const char* name, Flags key, boost::false_type _is_not_fundamental )
@@ -293,27 +292,114 @@ namespace detail {
         return !is.valid();
     }
 
+    /**
+     *  By default, we can simply use the unpack_field() calls which use
+     *  idl::reflect<>, but this class is specialized for fusion sequences.
+     */
+    template<typename IsSequence>
+    struct unpack_message_selector
+    {
+        template<typename T,typename T2>
+        static inline bool unpack_message( boost::rpc::datastream<T2>& is, T& val )
+        {
+       //     unpack_message_selector<T>::unpack_message( is, val );
+            while( is.remaining() )
+            {
+                // unpack key
+                unsigned_int tkey;
+                is >> tkey;
+                if( !is.valid() )
+                    return false;
 
+                int type = tkey.value & 0x07;
+                uint32_t key  = tkey.value >> 3;
+                if( !unpack_field( is, val, key, type ) )   
+                {
+                    std::cerr <<"error unpacking field "<<key<<std::endl;
+                    return false;
+                 }
+            }
+            return true;
+        }
+    };
+    /**
+     *  Specialization for fusion sequences.
+     */
+    template<>
+    struct unpack_message_selector<boost::integral_constant<bool, true> >
+    {
+        /**
+         *  Run-time access to boost::fusion::vector<> requires special support
+         *  to provide "random access" to the fields.  
+         *
+         * @todo Convert the dynamic key lookup sequence into a binary search
+         *       instead of a linear search. Fortunately the number of fields in
+         *       the vector should be a relatively small number.
+         */
+        template<typename Sequence, int32_t Index = 
+                                    boost::fusion::result_of::size<Sequence>::type::value>
+        struct helper
+        {
+            template<typename StreamType>
+            static inline bool unpack_field( boost::rpc::datastream<StreamType>& is, 
+                                             Sequence& seq, uint32_t key, uint32_t type )
+            {
+                if( (Index -1)== key )
+                {
+                    unpack_field_visitor<StreamType> ufv( is, key, type );
+                    ufv.unpack( boost::fusion::at_c<Index-1>(seq), 0, key ); 
+                    return true;
+                }
+                else
+                {
+                    helper<Sequence,(Index-1)>::unpack_field( is, seq, key, type );
+                }
+            }
+        };
+
+        template<typename Sequence>
+        struct helper<Sequence,0>
+        {
+            template<typename StreamType>
+            static inline bool unpack_field( boost::rpc::datastream<StreamType>& is, 
+                                             Sequence& seq, uint32_t key, uint32_t type )
+            {
+                return false; 
+            }
+        };
+
+        template<typename Sequence,typename T2>
+        static inline bool unpack_message( boost::rpc::datastream<T2>& is, Sequence& val )
+        {
+            while( is.remaining() )
+            {
+                // unpack key
+                unsigned_int tkey;
+                is >> tkey;
+                if( !is.valid() )
+                    return false;
+
+                int type = tkey.value & 0x07;
+                uint32_t key  = tkey.value >> 3;
+                if( !helper<Sequence>::unpack_field( is, val, key, type ) )   
+                {
+                    std::cerr <<"error unpacking field "<<key<<std::endl;
+                    return false;
+                 }
+            }
+            return true;
+        }
+    };
+
+
+    /**
+     *  Iterates over the fields in the message and unpacks each
+     *  field as it is found.
+     */
     template<typename T,typename T2>
     bool unpack_message_visitor( boost::rpc::datastream<T2>& is, T& val )
     {
-        while( is.remaining() )
-        {
-            // unpack key
-            unsigned_int tkey;
-            is >> tkey;
-            if( !is.valid() )
-                return false;
-
-            int type = tkey.value & 0x07;
-            uint32_t key  = tkey.value >> 3;
-            if( !unpack_field( is, val, key, type ) )   
-            {
-                std::cerr <<"error unpacking field "<<key<<std::endl;
-                return false;
-             }
-        }
-        return true;
+        return unpack_message_selector<typename boost::fusion::traits::is_sequence<T>::type>::unpack_message(is,val);
     }
 
 
@@ -323,13 +409,6 @@ class pack_message_visitor
     public:
     pack_message_visitor( boost::rpc::datastream<DataStreamType>& os )
     :m_os(os){}
-
-    /*
-    friend inline void visit( const std::string& str, pack_message_visitor& v, int field = -1 )
-    { 
-        v.m_os.write( str.c_str(), str.size() );
-    }
-    */
     
     template<typename Class>
     void start( Class, const char* anem ){}
@@ -341,7 +420,7 @@ class pack_message_visitor
      *  This method handles all fundamental types
      */
     template<typename T, typename Flags>
-    void pack( const T& value, const char* name, Flags key, boost::true_type _is_fundamental )
+    void pack_field( const T& value, const char* name, Flags key, boost::true_type _is_fundamental )
     {
         m_os << unsigned_int( uint32_t(key) << 3 | get_wire_type<T>::value );
         m_os << value;
@@ -352,60 +431,101 @@ class pack_message_visitor
      *      (not string,varint,fundamental,container,optional, or required)
      */
     template< typename T, typename Flags>
-    void pack( const T& value, const char* name, Flags key, boost::false_type _is_not_fundamental )
+    void pack_field( const T& value, const char* name, Flags key, boost::false_type _is_not_fundamental )
     {
          m_os <<unsigned_int( uint32_t(key) << 3 | length_delimited );
     
-         std::vector<char> buf;
-         boost::rpc::protocol_buffer::pack(buf, value );
-
-         unsigned_int s(buf.size());
+         unsigned_int s(boost::rpc::protocol_buffer::packsize(value));
          m_os << s;
-         if( buf.size() )
-             m_os.write( &buf.front(), s.value );
+         pack( value );
     }
 
-    template<typename Class, typename T, typename Flags>
-    void accept_member( const Class& c, T (Class::*p), const char* name, Flags key )
+    template<typename DST>
+    struct visit_sequence
     {
-         pack( c.*p, name, key, typename boost::is_fundamental<T>::type() );
+         visit_sequence( datastream<DST>& _ds ):id(0),pmv(_ds){}
+
+         mutable uint32_t                     id;
+         mutable pack_message_visitor<DST>    pmv;
+
+         template<typename T>
+         void operator() ( const T& v )const
+         {
+            pmv.pack_field(v,0,id, typename boost::is_fundamental<T>::type());
+            ++id;
+         }
+    };
+
+    template< typename T>
+    void pack( const T& value, boost::false_type _is_not_fundamental, boost::mpl::true_ _is_fusion_sequence)
+    {
+        visit_sequence<DataStreamType> pack_vector(m_os);
+        boost::fusion::for_each( value, pack_vector );
     }
-    
-    template<typename Flags>
-    void pack( const signed_int& value, const char* name, Flags key, boost::false_type _is_not_fundamental )
+    template< typename T>
+    void pack( const T& value, boost::false_type _is_not_fundamental, boost::mpl::false_ _is_not_fusion_sequence)
     {
-         m_os << unsigned_int( uint32_t(key) << 3 | varint );
-         m_os << value;
+         detail::pack_message_visitor<DataStreamType> pack_visitor( m_os );
+         boost::idl::reflector<T>::visit( value, pack_visitor, -1 );
     }
-    template<typename Flags>
-    void pack( const unsigned_int& value, const char* name, Flags key, boost::false_type _is_not_fundamental )
+
+    void pack( const std::string& value, boost::false_type _is_not_fundamental, boost::mpl::false_ _is_not_fusion_sequence)
     {
-         m_os << unsigned_int( uint32_t(key) << 3 | varint );
-         m_os << value;
-    }
-    template<typename Flags>
-    void pack( const std::string& value, const char* name, Flags key, boost::false_type _is_not_fundamental )
-    {
-         m_os <<unsigned_int( uint32_t(key) << 3 | length_delimited );
          uint32_t size = value.size();
          m_os <<unsigned_int( size );
          m_os.write(  value.c_str(), size );
     }
 
-    template<typename T, typename Flags>
-    void pack( const boost::optional<T>& value, const char* name, Flags key, boost::false_type _is_not_fundamental )
+    template< typename T >
+    void pack( const T& value, boost::true_type _is_fundamental, boost::mpl::false_ _is_not_fusion_sequence)
     {
-        if( !!value )
-            pack( *value, name, key, typename boost::is_fundamental<T>::type() );
+        m_os << value;
+    }
+    template< typename T >
+    void pack( const T& value )
+    {
+        pack( value, typename boost::is_fundamental<T>::type(), typename boost::fusion::traits::is_sequence<T>::type() );
+    }
+
+    template<typename Flags>
+    void pack_field( const signed_int& value, const char* name, Flags key, boost::false_type _is_not_fundamental )
+    {
+         m_os << unsigned_int( uint32_t(key) << 3 | varint );
+         m_os << value;
+    }
+    template<typename Flags>
+    void pack_field( const unsigned_int& value, const char* name, Flags key, boost::false_type _is_not_fundamental )
+    {
+         m_os << unsigned_int( uint32_t(key) << 3 | varint );
+         m_os << value;
+    }
+    template<typename Flags>
+    void pack_field( const std::string& value, const char* name, Flags key, boost::false_type _is_not_fundamental )
+    {
+         m_os <<unsigned_int( uint32_t(key) << 3 | length_delimited );
+         pack( value );
     }
     template<typename T, typename Flags>
-    void pack( const typename boost::rpc::required<T>& value, const char* name, Flags key, boost::false_type _is_not_fundamental )
+    void pack_field( const boost::optional<T>& value, const char* name, Flags key, boost::false_type _is_not_fundamental )
     {
         if( !!value )
-            pack( *value, name, key, typename boost::is_fundamental<T>::type() ); 
+            pack_field( *value, name, key, typename boost::is_fundamental<T>::type() );
+    }
+    template<typename T, typename Flags>
+    void pack_field( const typename boost::rpc::required<T>& value, const char* name, Flags key, boost::false_type _is_not_fundamental )
+    {
+        if( !!value )
+            pack_field( *value, name, key, typename boost::is_fundamental<T>::type() ); 
         else    
             BOOST_THROW_EXCEPTION( boost::rpc::protocol_buffer::required_field_not_set() );
     }
+
+    template<typename Class, typename T, typename Flags>
+    void accept_member( const Class& c, T (Class::*p), const char* name, Flags key )
+    {
+         pack_field( c.*p, name, key, typename boost::is_fundamental<T>::type() );
+    }
+    
     
     template<typename Class, typename Field, typename Alloc, template<typename,typename> class Container, typename Flags>
     void accept_member( const Class& c, Container<Field,Alloc> (Class::*p), const char* name, Flags key )
@@ -416,7 +536,7 @@ class pack_message_visitor
              typename Container<Field,Alloc >::const_iterator end = (c.*p).end();
              while( itr != end )
              {
-                pack( *itr, name, key, typename boost::is_fundamental<Field>::type() );
+                pack_field( *itr, name, key, typename boost::is_fundamental<Field>::type() );
                 /*
                  m_os <<unsigned_int( uint32_t(key) << 3 | length_delimited );
     
@@ -449,7 +569,8 @@ class pack_message_visitor
     {
         boost::rpc::datastream<size_t>         ps;
         detail::pack_message_visitor<size_t>   size_visitor( ps );
-        boost::idl::reflector<T>::visit( const_cast<T&>(v), size_visitor, -1 );
+        size_visitor.pack(v);
+     //   boost::idl::reflector<T>::visit( const_cast<T&>(v), size_visitor, -1 );
         return ps.tellp();
     }
     template<typename T>
@@ -457,7 +578,8 @@ class pack_message_visitor
     {
         boost::rpc::datastream<char*>         ds(loc, loc_size);
         detail::pack_message_visitor<char*>   pack_visitor( ds );
-        boost::idl::reflector<T>::visit( v, pack_visitor, -1 );
+        pack_visitor.pack(v);
+    //    boost::idl::reflector<T>::visit( v, pack_visitor, -1 );
     }
     template<typename T>
     void pack( std::vector<char>& msg, const T& v )
@@ -475,8 +597,12 @@ class pack_message_visitor
     template<typename T>
     void unpack( const char* msg, size_t msg_size, T& v )
     {
+        elog( "unpack '%1%'", boost::idl::get_typeinfo<T>::name() );
         boost::rpc::datastream<const char*> ds(msg,msg_size);
         detail::unpack_message_visitor( ds, v );
+   //     detail::unpack_field_visitor<const char*> visitor(ds,0,detail::get_wire_type<T>::value );
+   //     visitor.unpack( v, 0, 0 );
+
     }
 
     template<typename T>

@@ -17,7 +17,8 @@ struct String
 
 BOOST_IDL_REFLECT(String, BOOST_PP_SEQ_NIL, (value) )
 
-String ping( const String& s ){
+std::string ping( const std::string& s ){
+    std::cerr << "'"<<s<<"'\n";
     return s;
 }
 
@@ -53,7 +54,7 @@ int main( int argc, char** argv )
     boost::asio::io_service      io;
     
     boost::rpc::server<rpc::protocol_buffer::protocol> rps;
-    rps.add_method( "ping", ping );
+    rps.add_method<std::string(std::string),boost::fusion::vector<std::string> >( std::string("ping"), boost::function<std::string(std::string)>(ping) );
 
     rpc_server serv( io, boost::asio::ip::tcp::endpoint( boost::asio::ip::tcp::v4(),
                     lexical_cast<uint16_t>(argv[1])) );

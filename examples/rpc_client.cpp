@@ -4,6 +4,7 @@
 #include <boost/lexical_cast.hpp>
 #include <boost/rpc/protocol_buffer.hpp>
 #include <boost/idl/fast_delegate.hpp>
+#include <boost/fusion/container/generation/make_vector.hpp>
 #include <iostream>
 
 int handle_result( const std::string& r, int err )
@@ -30,7 +31,7 @@ int main( int argc, char** argv )
     m_client.call<std::string>( std::string("ping"),
                   &handle_result );//, std::string( "Hello World!" )  );
     m_client.call<std::string>( std::string("ping"),
-                  &handle_result );//, std::string( "Hello World!" )  );
+                  &handle_result, boost::fusion::make_vector( std::string( "hello world" ) ) );//, std::string( "Hello World!" )  );
 
     new boost::asio::io_service::work(io);
     io.run(); 

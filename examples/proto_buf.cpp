@@ -3,6 +3,7 @@
 #include <boost/rpc/json.hpp>
 #include <boost/rpc/protocol_buffer.hpp>
 #include <boost/rpc/datastream.hpp>
+#include <boost/fusion/container/generation/make_vector.hpp>
 #include <sstream>
 #include <iostream>
 #include <iomanip>
@@ -28,6 +29,16 @@ struct Test1b
     boost::rpc::unsigned_int b;
     std::string  c;
 };
+
+struct TestVector
+{
+    std::string arg1;
+    std::string arg2;
+    int         argi;
+    Test1b      oneb;
+};
+
+BOOST_IDL_REFLECT(TestVector, BOOST_PP_SEQ_NIL, (arg1)(arg2)(argi) )
 
 BOOST_IDL_REFLECT(Test1, BOOST_PP_SEQ_NIL, (a)(b)(c) )
 BOOST_IDL_REFLECT(Test1a, BOOST_PP_SEQ_NIL, (a)(b)(c) )
@@ -68,6 +79,29 @@ inline std::string hex_dump( const char* data, int len )
 }
 int main( int argc, char** argv )
 {
+    TestVector tv;
+    tv.arg1 = "Hello World";
+    tv.arg2 = "Goodbye World";
+    tv.argi = 31;
+    tv.oneb.c = "one b";
+    std::vector<char> tv1;
+    std::vector<char> tv2;
+    boost::rpc::protocol_buffer::pack( tv1, tv );
+    boost::rpc::protocol_buffer::pack( tv2, boost::fusion::make_vector( tv.arg1, tv.arg2, tv.argi, tv.oneb ) );
+    std::cerr <<"protocol buffer vector<std::string>\n";
+    std::cerr << hex_dump( &tv1.front(), tv1.size() ) << std::endl;
+    std::cerr << hex_dump( &tv2.front(), tv1.size() ) << std::endl;
+    boost::fusion::vector<std::string,std::string,int,Test1b> unpack_test;
+    boost::rpc::protocol_buffer::unpack( tv2, unpack_test );
+    std::cerr << boost::fusion::at_c<0>(unpack_test)<<std::endl;
+    std::cerr << boost::fusion::at_c<1>(unpack_test)<<std::endl;
+    std::cerr << boost::fusion::at_c<2>(unpack_test)<<std::endl;
+    std::cerr << boost::fusion::at_c<3>(unpack_test).c<<std::endl;
+
+
+    
+    return 0;
+
     Test1 t1_in;
     t1_in.a = 34;
     t1_in.b = "Dan was Here";
