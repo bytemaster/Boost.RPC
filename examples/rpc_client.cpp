@@ -28,10 +28,8 @@ int main( int argc, char** argv )
 
     rpc::client<rpc::protocol_buffer::protocol>  m_client( m_con_ptr );
 
-    m_client.call<std::string>( std::string("ping"),
-                  &handle_result );//, std::string( "Hello World!" )  );
-    m_client.call<std::string>( std::string("ping"),
-                  &handle_result, boost::fusion::make_vector( std::string( "hello world" ) ) );//, std::string( "Hello World!" )  );
+    m_client.call<std::string>( "ping", &handle_result );
+    m_client.call<std::string>( "ping", &handle_result, boost::fusion::make_vector( std::string( "hello world" ) ) );
 
     new boost::asio::io_service::work(io);
     io.run(); 
