@@ -1,6 +1,6 @@
 #ifndef __BOOST_RPC_MESSAGE_HPP_
 #define __BOOST_RPC_MESSAGE_HPP_
-#include <boost/idl/reflect.hpp>
+#include <boost/reflect/reflect.hpp>
 #include <boost/rpc/varint.hpp>
 #include <boost/rpc/required.hpp>
 #include <boost/optional.hpp>
@@ -50,8 +50,8 @@ struct message
 
 } } // namespace boost::rpc
 
-BOOST_IDL_REFLECT( boost::rpc::error_object, BOOST_PP_SEQ_NIL, (code)(message)(data) )
-BOOST_IDL_REFLECT( boost::rpc::message, BOOST_PP_SEQ_NIL, (id)(method_id)(method)(params)(result)(error) )
+BOOST_REFLECT( boost::rpc::error_object, BOOST_PP_SEQ_NIL, (code)(message)(data) )
+BOOST_REFLECT( boost::rpc::message, BOOST_PP_SEQ_NIL, (id)(method_id)(method)(params)(result)(error) )
 
 #endif // __BOOST_RPC_MESSAGE_HPP_
 

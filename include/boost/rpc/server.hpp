@@ -1,6 +1,6 @@
 #ifndef _BOOST_RPC_SERVER_HPP_
 #define _BOOST_RPC_SERVER_HPP_
-#include <boost/rpc/debug.hpp>
+#include <boost/rpc/log/log.hpp>
 #include <boost/rpc/connection.hpp>
 #include <boost/lambda/lambda.hpp>
 #include <boost/lambda/bind.hpp>

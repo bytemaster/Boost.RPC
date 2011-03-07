@@ -1,10 +1,10 @@
 #ifndef _BOOST_RPC_DETAIL_PROTOCOL_BUFFERS_HPP_
 #define _BOOST_RPC_DETAIL_PROTOCOL_BUFFERS_HPP_
-#include <boost/rpc/datastream.hpp>
+#include <boost/rpc/datastream/datastream.hpp>
 #include <boost/rpc/varint.hpp>
 #include <boost/rpc/errors.hpp>
 #include <boost/rpc/required.hpp>
-#include <boost/idl/reflect.hpp>
+#include <boost/reflect/reflect.hpp>
 #include <boost/optional.hpp>
 #include <boost/throw_exception.hpp>
 #include <boost/fusion/container/vector.hpp>
@@ -13,7 +13,7 @@
 #include <boost/fusion/sequence/intrinsic/size.hpp>
 
 #include <iostream>
-#include <boost/rpc/debug.hpp>
+#include <boost/rpc/log/log.hpp>
 
 namespace boost { namespace rpc { namespace protocol_buffer { 
 
@@ -275,7 +275,7 @@ namespace detail {
     bool unpack_field( boost::rpc::datastream<T2>& is, T& val, Flags key, int type )
     {
         unpack_field_visitor<T2> upfv(is, key, type);
-        boost::idl::reflector<T>::visit( val, upfv, key );
+        boost::reflect::reflector<T>::visit( val, upfv, key );
         return !upfv.error;
     }
     template<typename T2, typename Flags>
@@ -294,7 +294,7 @@ namespace detail {
 
     /**
      *  By default, we can simply use the unpack_field() calls which use
-     *  idl::reflect<>, but this class is specialized for fusion sequences.
+     *  reflect::reflect<>, but this class is specialized for fusion sequences.
      */
     template<typename IsSequence>
     struct unpack_message_selector
@@ -466,7 +466,7 @@ class pack_message_visitor
     void pack( const T& value, boost::false_type _is_not_fundamental, boost::mpl::false_ _is_not_fusion_sequence)
     {
          detail::pack_message_visitor<DataStreamType> pack_visitor( m_os );
-         boost::idl::reflector<T>::visit( value, pack_visitor, -1 );
+         boost::reflect::reflector<T>::visit( value, pack_visitor, -1 );
     }
 
     void pack( const std::string& value, boost::false_type _is_not_fundamental, boost::mpl::false_ _is_not_fusion_sequence)
@@ -526,6 +526,8 @@ class pack_message_visitor
          pack_field( c.*p, name, key, typename boost::is_fundamental<T>::type() );
     }
     
+
+
     
     template<typename Class, typename Field, typename Alloc, template<typename,typename> class Container, typename Flags>
     void accept_member( const Class& c, Container<Field,Alloc> (Class::*p), const char* name, Flags key )
@@ -537,18 +539,7 @@ class pack_message_visitor
              while( itr != end )
              {
                 pack_field( *itr, name, key, typename boost::is_fundamental<Field>::type() );
-                /*
-                 m_os <<unsigned_int( uint32_t(key) << 3 | length_delimited );
-    
-                 std::vector<char> buf;
-                 boost::rpc::protocol_buffer::pack(buf, *itr );
-    
-                 unsigned_int s(buf.size());
-                 m_os <<s;
-                 if( buf.size() )
-                     m_os.write( &buf.front(), s.value );
-                     */
-                 ++itr;
+                ++itr;
              }
          }
     }
@@ -570,7 +561,7 @@ class pack_message_visitor
         boost::rpc::datastream<size_t>         ps;
         detail::pack_message_visitor<size_t>   size_visitor( ps );
         size_visitor.pack(v);
-     //   boost::idl::reflector<T>::visit( const_cast<T&>(v), size_visitor, -1 );
+     //   boost::reflect::reflector<T>::visit( const_cast<T&>(v), size_visitor, -1 );
         return ps.tellp();
     }
     template<typename T>
@@ -579,7 +570,12 @@ class pack_message_visitor
         boost::rpc::datastream<char*>         ds(loc, loc_size);
         detail::pack_message_visitor<char*>   pack_visitor( ds );
         pack_visitor.pack(v);
-    //    boost::idl::reflector<T>::visit( v, pack_visitor, -1 );
+    }
+    template<typename T, typename DataStreamType>
+    void pack( boost::rpc::datastream<DataStreamType>& ds, const T& v )
+    {
+        detail::pack_message_visitor<DataStreamType>   pack_visitor( ds );
+        pack_visitor.pack(v);
     }
     template<typename T>
     void pack( std::vector<char>& msg, const T& v )
@@ -597,7 +593,7 @@ class pack_message_visitor
     template<typename T>
     void unpack( const char* msg, size_t msg_size, T& v )
     {
-        elog( "unpack '%1%'", boost::idl::get_typeinfo<T>::name() );
+        elog( "unpack '%1%'", boost::reflect::get_typeinfo<T>::name() );
         boost::rpc::datastream<const char*> ds(msg,msg_size);
         detail::unpack_message_visitor( ds, v );
    //     detail::unpack_field_visitor<const char*> visitor(ds,0,detail::get_wire_type<T>::value );

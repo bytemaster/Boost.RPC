@@ -6,7 +6,7 @@
 #include <boost/reflect/reflect.hpp>
 #include <boost/optional.hpp>
 
-namespace boost { namespace rpc { namespace protocol_buffer {
+namespace boost { namespace rpc { namespace raw {
 
     template<typename T>
     size_t packsize( const T& v );
@@ -33,7 +33,7 @@ namespace boost { namespace rpc { namespace protocol_buffer {
     inline void hash_sha1( const T& v, sha1_hashcode& hc )
     {
         datastream<sha1> sh; 
-        boost::rpc::protocol_buffer::pack( sh, v ); 
+        boost::rpc::raw::pack( sh, v ); 
         sh.result(hc);
     }
 
@@ -41,7 +41,7 @@ namespace boost { namespace rpc { namespace protocol_buffer {
     inline sha1_hashcode hash_sha1( const T& v )
     {
         datastream<sha1> sh; 
-        boost::rpc::protocol_buffer::pack( sh, v ); 
+        boost::rpc::raw::pack( sh, v ); 
         return sh.result();
     }
 
@@ -67,6 +67,6 @@ namespace boost { namespace rpc { namespace protocol_buffer {
 
 } } } // namespace boost::rpc
 
-#include <boost/rpc/detail/protocol_buffer.hpp>
+#include <boost/rpc/detail/raw.hpp>
 
 #endif // _BOOST_RPC_PROTOCOL_BUFFER_HPP_

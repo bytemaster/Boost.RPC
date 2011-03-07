@@ -1,10 +1,10 @@
-#ifndef _BOOST_IDL_JSON_HPP_
-#define _BOOST_IDL_JSON_HPP_
-#include <boost/idl/reflect.hpp>
-#include <boost/rpc/datastream.hpp>
+#ifndef _BOOST_RPC_JSON_HPP_
+#define _BOOST_RPC_JSON_HPP_
+#include <boost/reflect/reflect.hpp>
+#include <boost/rpc/datastream/datastream.hpp>
 #include <boost/rpc/varint.hpp>
 #include <boost/rpc/required.hpp>
-#include <boost/rpc/debug.hpp>
+#include <boost/rpc/log/log.hpp>
 #include <sstream>
 #include <iostream>
 #include <iomanip>
@@ -97,7 +97,7 @@ class json_visitor
             m_os<<std::setw(4*depth)<<" "<< '"'<<name<< "\" : ";
         }
         first = true;
-        boost::idl::reflector<T>::visit( f, *this );
+        boost::reflect::reflector<T>::visit( f, *this );
         first = false;
    }
 
@@ -122,7 +122,7 @@ class json_visitor
             m_os<<std::setw(4*depth)<<" ";// << "{";
             first = true;
             add_field( *itr, (const char*)"", key );
- //           boost::idl::reflector<Field>::visit( *itr, *this );
+ //           boost::reflect::reflector<Field>::visit( *itr, *this );
  //           m_os<<"\n"<<std::setw(4*depth)<<" "<<"}";
             ++itr;
             first  = false;
@@ -225,7 +225,7 @@ std::string to_json( const T& v )
 {
     std::ostringstream ss;
     json_visitor jv(ss);
-    boost::idl::reflector<T>::visit( v,jv);
+    boost::reflect::reflector<T>::visit( v,jv);
     return ss.str();
 }
 

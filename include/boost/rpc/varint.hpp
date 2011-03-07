@@ -1,7 +1,7 @@
 #ifndef _BOOST_RPC_VARINT_HPP_
 #define _BOOST_RPC_VARINT_HPP_
-#include <boost/idl/reflect.hpp>
-#include <boost/rpc/datastream.hpp>
+#include <boost/reflect/reflect.hpp>
+#include <boost/rpc/datastream/datastream.hpp>
 
 namespace boost { namespace rpc {
 
@@ -94,7 +94,7 @@ struct signed_int
 
 } }
 
-BOOST_IDL_DEFINE_TYPEINFO( boost::rpc::unsigned_int )
-BOOST_IDL_DEFINE_TYPEINFO( boost::rpc::signed_int )
+BOOST_REFLECT_TYPEINFO( boost::rpc::unsigned_int )
+BOOST_REFLECT_TYPEINFO( boost::rpc::signed_int )
 
 #endif 

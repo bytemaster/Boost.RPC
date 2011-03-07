@@ -4,7 +4,7 @@
 #include <boost/bind.hpp>
 #include <boost/rpc/message.hpp>
 #include <boost/rpc/json.hpp>
-#include <boost/rpc/debug.hpp>
+#include <boost/rpc/log/log.hpp>
 #include <boost/rpc/connection.hpp>
 #include <boost/optional.hpp>
 #include <iostream>
