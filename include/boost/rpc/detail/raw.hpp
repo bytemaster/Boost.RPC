@@ -47,9 +47,9 @@ class unpack_message_visitor
     template<typename DST>
     struct visit_sequence
     {
-         visit_sequence( datastream<DST>& _ds ):id(0),pmv(_ds){}
+         visit_sequence( datastream<DST>& _ds ):pmv(_ds){}
 
-         mutable ununpack_message_visitor<DST>    pmv;
+         mutable unpack_message_visitor<DST>    pmv;
 
          template<typename T>
          void operator() ( T& v )const
@@ -67,7 +67,7 @@ class unpack_message_visitor
     template< typename T>
     void unpack( T& value, boost::false_type _is_not_fundamental, boost::mpl::false_ _is_not_fusion_sequence)
     {
-         detail::ununpack_message_visitor<DataStreamType> unpack_visitor( m_os );
+         detail::unpack_message_visitor<DataStreamType> unpack_visitor( m_os );
          boost::reflect::reflector<T>::visit( value, unpack_visitor, -1 );
     }
 
@@ -120,7 +120,7 @@ class unpack_message_visitor
         if( !!value )
             unpack_field( *value, name, key, typename boost::is_fundamental<T>::type() ); 
         else    
-            BOOST_THROW_EXCEPTION( boost::rpc::raw::required_field_not_set() );
+            BOOST_THROW_EXCEPTION( boost::rpc::required_field_not_set() );
     }
 
     template<typename Class, typename T, typename Flags>
@@ -180,7 +180,7 @@ class pack_message_visitor
     template<typename DST>
     struct visit_sequence
     {
-         visit_sequence( datastream<DST>& _ds ):id(0),pmv(_ds){}
+         visit_sequence( datastream<DST>& _ds ):pmv(_ds){}
 
          mutable pack_message_visitor<DST>    pmv;
 
@@ -249,7 +249,7 @@ class pack_message_visitor
         if( !!value )
             pack_field( *value, name, key, typename boost::is_fundamental<T>::type() ); 
         else    
-            BOOST_THROW_EXCEPTION( boost::rpc::raw::required_field_not_set() );
+            BOOST_THROW_EXCEPTION( boost::rpc::required_field_not_set() );
     }
 
     template<typename Class, typename T, typename Flags>
@@ -317,7 +317,7 @@ class pack_message_visitor
     void unpack( const char* msg, size_t msg_size, T& v )
     {
         boost::rpc::datastream<const char*> ds(msg,msg_size);
-        detail::unpack_message_visitor<DataStreamType>   unpack_visitor( ds );
+        detail::unpack_message_visitor<const char*>   unpack_visitor( ds );
         unpack_visitor.unpack(v);
     }
 

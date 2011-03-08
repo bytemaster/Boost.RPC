@@ -517,7 +517,7 @@ class pack_message_visitor
         if( !!value )
             pack_field( *value, name, key, typename boost::is_fundamental<T>::type() ); 
         else    
-            BOOST_THROW_EXCEPTION( boost::rpc::protocol_buffer::required_field_not_set() );
+            BOOST_THROW_EXCEPTION( boost::rpc::required_field_not_set() );
     }
 
     template<typename Class, typename T, typename Flags>

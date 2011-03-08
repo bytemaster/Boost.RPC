@@ -54,15 +54,15 @@ namespace boost { namespace rpc { namespace raw {
     {
         template<typename T>
         static inline void unpack( const char* msg, size_t msg_size, T& v )
-        { protocol_buffer::unpack(msg,msg_size,v); }
+        { raw::unpack(msg,msg_size,v); }
 
         template<typename T>
         static inline void pack( char* msg, size_t msg_size, T& v )
-        { protocol_buffer::pack(msg,msg_size,v); }
+        { raw::pack(msg,msg_size,v); }
 
         template<typename T>
         static inline size_t packsize ( const T& v )
-        { return protocol_buffer::packsize(v); }
+        { return raw::packsize(v); }
     };
 
 } } } // namespace boost::rpc
