@@ -6,6 +6,7 @@
 #include <boost/rpc/raw.hpp>
 #include <boost/rpc/required.hpp>
 #include <boost/rpc/log/log.hpp>
+#include <boost/rpc/base64.hpp>
 #include <sstream>
 #include <iostream>
 #include <iomanip>
