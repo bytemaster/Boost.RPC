@@ -27,6 +27,21 @@ namespace boost { namespace rpc { namespace detail {
     {
         os<<color<<file<<":"<<line<<" "<<method<<"] "<< (boost::format(format) %p1 %p2 %p3) << CONSOLE_DEFAULT << std::endl;
     }
+    template<typename P1, typename P2, typename P3, typename P4>
+    inline void log( std::ostream& os, const char* color, const char* file, uint32_t line, const char* method, const std::string& format, const P1& p1, const P2& p2, const P3& p3, const P4& p4 )
+    {
+        os<<color<<file<<":"<<line<<" "<<method<<"] "<< (boost::format(format) %p1 %p2 %p3 %p4) << CONSOLE_DEFAULT << std::endl;
+    }
+    template<typename P1, typename P2, typename P3, typename P4, typename P5>
+    inline void log( std::ostream& os, const char* color, const char* file, uint32_t line, const char* method, const std::string& format, const P1& p1, const P2& p2, const P3& p3, const P4& p4, const P5& p5 )
+    {
+        os<<color<<file<<":"<<line<<" "<<method<<"] "<< (boost::format(format) %p1 %p2 %p3 %p4 %p5) << CONSOLE_DEFAULT << std::endl;
+    }
+    template<typename P1, typename P2, typename P3, typename P4, typename P5, typename P6>
+    inline void log( std::ostream& os, const char* color, const char* file, uint32_t line, const char* method, const std::string& format, const P1& p1, const P2& p2, const P3& p3, const P4& p4, const P5& p5, const P6& p6 )
+    {
+        os<<color<<file<<":"<<line<<" "<<method<<"] "<< (boost::format(format) %p1 %p2 %p3 %p4 %p5 %p6) << CONSOLE_DEFAULT << std::endl;
+    }
 
 } } } // boost::rpc::detail
 
