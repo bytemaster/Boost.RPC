@@ -105,11 +105,21 @@ class json_visitor
         boost::reflect::reflector<T>::visit( f, *this );
         first = false;
    }
+   template <typename Flags>
+   void add_field( char f, const char* name, Flags  )
+   {
+        m_os << (first ? "\n" : ",\n");
+        m_os<<std::setw(4*depth)<<" "<< '"'<<name<< "\" : ";
+        first = true;
+        m_os << (first ? "" : ",\n");
+        m_os<<std::setw(4*depth)<<" "<<int(f);
+        first = false;
+   }
 
    template<typename Class, typename T, typename Flags>
    void accept_member( Class c, T (Class::*p), const char* name, Flags f )
    {
-       if_reflected<boost::reflect::reflector<T>::is_defined>::add_field( *this, c.*p, name, f );
+       if_reflected<boost::reflect::reflector<typename boost::remove_const<T>::type>::is_defined>::add_field( *this, c.*p, name, f );
    }
     template<typename Class, typename Field, typename Alloc, template<typename,typename> class Container, typename Flags>
     void accept_member( Class c, Container<Field,Alloc> (Class::*p), const char* name, Flags key )
@@ -247,6 +257,11 @@ class json_visitor
         {
             v.add_field( value, name, flags );
         }
+        template<typename Visitor, typename T>
+        inline static void visit( Visitor& jv, const T& v )
+        {
+            boost::reflect::reflector<T>::visit( v,jv);
+        }
     };
     template<>
     struct if_reflected<false>
@@ -261,6 +276,16 @@ class json_visitor
                 b64 = base64_encode( (unsigned char*)&data.front(), data.size() );
             v.add_field( b64, name, flags );
         }
+        template<typename Visitor, typename T>
+        inline static void visit( Visitor& jv, T v )
+        {
+            std::vector<char> data;
+            raw::pack( data, v );
+            std::string b64;
+            if( data.size() )
+                b64 = base64_encode( (unsigned char*)&data.front(), data.size() );
+            jv.m_os << b64;
+        }
     };
 
 } // namepsace json
@@ -270,7 +295,7 @@ std::string to_json( const T& v )
 {
     std::ostringstream ss;
     json::json_visitor jv(ss);
-    boost::reflect::reflector<T>::visit( v,jv);
+    json::if_reflected<boost::reflect::reflector<T>::is_defined>::visit( jv, v );
     return ss.str();
 }
 
