@@ -3,13 +3,17 @@
 #include <boost/reflect/reflect.hpp>
 #include <boost/rpc/datastream/datastream.hpp>
 #include <boost/rpc/varint.hpp>
+#include <boost/rpc/raw.hpp>
 #include <boost/rpc/required.hpp>
 #include <boost/rpc/log/log.hpp>
 #include <sstream>
 #include <iostream>
 #include <iomanip>
 
-namespace boost { namespace rpc {
+namespace boost { namespace rpc { namespace json {
+
+    template<bool IsReflected=true>
+    struct if_reflected;
 
 class json_visitor
 {
@@ -104,7 +108,7 @@ class json_visitor
    template<typename Class, typename T, typename Flags>
    void accept_member( Class c, T (Class::*p), const char* name, Flags f )
    {
-        add_field(c.*p, name, f);
+       if_reflected<boost::reflect::reflector<T>::is_defined>::add_field( *this, c.*p, name, f );
    }
     template<typename Class, typename Field, typename Alloc, template<typename,typename> class Container, typename Flags>
     void accept_member( Class c, Container<Field,Alloc> (Class::*p), const char* name, Flags key )
@@ -189,6 +193,20 @@ class json_visitor
         first = false;
    }
    template<typename Class, typename Flags>
+   void accept_member( const Class& c, uint64_t (Class::*p), const char* name, Flags f )
+   {
+        m_os << (first ? "\n" : ",\n");
+        m_os<<std::setw(4*depth)<<" "<< '"'<<name<< "\" : " << (c.*p) ;
+        first = false;
+   }
+   template<typename Class, typename Flags>
+   void accept_member( const Class& c, int64_t (Class::*p), const char* name, Flags f )
+   {
+        m_os << (first ? "\n" : ",\n");
+        m_os<<std::setw(4*depth)<<" "<< '"'<<name<< "\" : " << (c.*p) ;
+        first = false;
+   }
+   template<typename Class, typename Flags>
    void accept_member( Class c, std::string (Class::*p), const char* name, Flags f )
    {
         m_os << (first ? "\n" : ",\n");
@@ -220,11 +238,37 @@ class json_visitor
     std::ostream& m_os;
 };
 
+    template<bool IsReflected>
+    struct if_reflected
+    {
+        template<typename Visitor, typename T, typename Flags>
+        inline static void add_field( Visitor& v, T value, const char* name, Flags flags )
+        {
+            v.add_field( value, name, flags );
+        }
+    };
+    template<>
+    struct if_reflected<false>
+    {
+        template<typename Visitor, typename T, typename Flags>
+        inline static void add_field( Visitor& v, const T& value, const char* name, Flags flags )
+        {
+            std::vector<char> data;
+            raw::pack( data, value );
+            std::string b64;
+            if( data.size() )
+                b64 = base64_encode( (unsigned char*)&data.front(), data.size() );
+            v.add_field( b64, name, flags );
+        }
+    };
+
+} // namepsace json
+
 template<typename T>
 std::string to_json( const T& v )
 {
     std::ostringstream ss;
-    json_visitor jv(ss);
+    json::json_visitor jv(ss);
     boost::reflect::reflector<T>::visit( v,jv);
     return ss.str();
 }

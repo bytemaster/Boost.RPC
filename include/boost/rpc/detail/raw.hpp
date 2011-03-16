@@ -1,5 +1,5 @@
-#ifndef _BOOST_RPC_DETAIL_PROTOCOL_BUFFERS_HPP_
-#define _BOOST_RPC_DETAIL_PROTOCOL_BUFFERS_HPP_
+#ifndef _BOOST_RPC_DETAIL_RAW_BUFFERS_HPP_
+#define _BOOST_RPC_DETAIL_RAW_BUFFERS_HPP_
 #include <boost/rpc/datastream/datastream.hpp>
 #include <boost/rpc/varint.hpp>
 #include <boost/rpc/errors.hpp>
@@ -18,8 +18,14 @@
 namespace boost { namespace rpc { namespace raw { 
 
 namespace detail {
+
+    template<bool IsReflected=true>
+    struct if_reflected;
+
+
+
 template<typename DataStreamType>
-class unpack_message_visitor
+class unpack_message_visitor : public boost::reflect::visitor< unpack_message_visitor<DataStreamType> >
 {
     public:
     unpack_message_visitor( boost::rpc::datastream<DataStreamType>& os )
@@ -64,11 +70,12 @@ class unpack_message_visitor
         visit_sequence<DataStreamType> unpack_vector(m_os);
         boost::fusion::for_each( value, unpack_vector );
     }
+
+
     template< typename T>
     void unpack( T& value, boost::false_type _is_not_fundamental, boost::mpl::false_ _is_not_fusion_sequence)
     {
-         detail::unpack_message_visitor<DataStreamType> unpack_visitor( m_os );
-         boost::reflect::reflector<T>::visit( value, unpack_visitor, -1 );
+         if_reflected<boost::reflect::reflector<T>::is_defined>::unpack( m_os, value );
     }
 
     void unpack( std::string& value, boost::false_type _is_not_fundamental, boost::mpl::false_ _is_not_fusion_sequence)
@@ -129,22 +136,27 @@ class unpack_message_visitor
          unpack_field( c.*p, name, key, typename boost::is_fundamental<T>::type() );
     }
     
-    template<typename Class, typename Field, typename Alloc, template<typename,typename> class Container, typename Flags>
-    void accept_member( Class& c, Container<Field,Alloc> (Class::*p), const char* name, Flags key )
+    template<typename Field, typename Alloc, template<typename,typename> class Container>
+    void unpack( Container<Field,Alloc>& c, boost::false_type _is_not_fundamental, boost::mpl::false_ _is_not_fusion_sequence)
     {
          uint32_t size;
          m_os >> size;
          if( size )
          {
-             (c.*p).resize(size);
-             typename Container<Field,Alloc >::const_iterator itr = (c.*p).begin();
-             typename Container<Field,Alloc >::const_iterator end = (c.*p).end();
+             c.resize(size);
+             typename Container<Field,Alloc >::iterator itr = c.begin();
+             typename Container<Field,Alloc >::iterator end = c.end();
              while( itr != end )
              {
-                unpack_field( *itr, name, key, typename boost::is_fundamental<Field>::type() );
+                unpack( *itr );//, 0, 0, typename boost::is_fundamental<Field>::type() );
                 ++itr;
              }
          }
+    }
+    template<typename Class, typename Field, typename Alloc, template<typename,typename> class Container, typename Flags>
+    void accept_member( Class& c, Container<Field,Alloc> (Class::*p), const char* name, Flags key )
+    {
+        unpack( c.*p );
     }
     private:
         boost::rpc::datastream<DataStreamType>& m_os;
@@ -152,7 +164,7 @@ class unpack_message_visitor
 
 
 template<typename DataStreamType>
-class pack_message_visitor
+class pack_message_visitor : public boost::reflect::visitor< unpack_message_visitor<DataStreamType> >
 {
     public:
     pack_message_visitor( boost::rpc::datastream<DataStreamType>& os )
@@ -197,11 +209,27 @@ class pack_message_visitor
         visit_sequence<DataStreamType> pack_vector(m_os);
         boost::fusion::for_each( value, pack_vector );
     }
+    template<typename Field, typename Alloc, template<typename,typename> class Container>
+    void pack( const Container<Field,Alloc>& c, boost::false_type _is_not_fundamental, boost::mpl::false_ _is_not_fusion_sequence)
+    {
+         m_os << uint32_t( c.size() );
+         if( c.size() )
+         {
+             typename Container<Field,Alloc >::const_iterator itr = c.begin();
+             typename Container<Field,Alloc >::const_iterator end = c.end();
+             while( itr != end )
+             {
+                pack( *itr );
+                ++itr;
+             }
+         }
+    }
     template< typename T>
     void pack( const T& value, boost::false_type _is_not_fundamental, boost::mpl::false_ _is_not_fusion_sequence)
     {
-         detail::pack_message_visitor<DataStreamType> pack_visitor( m_os );
-         boost::reflect::reflector<T>::visit( value, pack_visitor, -1 );
+         if_reflected<boost::reflect::reflector<T>::is_defined>::pack( m_os, value );
+         //detail::pack_message_visitor<DataStreamType> pack_visitor( m_os );
+        // boost::reflect::reflector<T>::visit( value, pack_visitor, -1 );
     }
 
     void pack( const std::string& value, boost::false_type _is_not_fundamental, boost::mpl::false_ _is_not_fusion_sequence)
@@ -261,21 +289,42 @@ class pack_message_visitor
     template<typename Class, typename Field, typename Alloc, template<typename,typename> class Container, typename Flags>
     void accept_member( const Class& c, Container<Field,Alloc> (Class::*p), const char* name, Flags key )
     {
-         m_os << uint32_t( (c.*p).size() );
-         if( (c.*p).size() )
-         {
-             typename Container<Field,Alloc >::const_iterator itr = (c.*p).begin();
-             typename Container<Field,Alloc >::const_iterator end = (c.*p).end();
-             while( itr != end )
-             {
-                pack_field( *itr, name, key, typename boost::is_fundamental<Field>::type() );
-                ++itr;
-             }
-         }
+        pack( c.*p );
     }
     private:
         boost::rpc::datastream<DataStreamType>& m_os;
 };
+
+    template<bool IsReflected>
+    struct if_reflected
+    {
+        template<typename DataStreamType, typename T>
+        inline static void unpack( boost::rpc::datastream<DataStreamType>& ds, T& value )
+        {
+             detail::unpack_message_visitor<DataStreamType> unpack_visitor( ds );
+             boost::reflect::reflector<T>::visit( value, unpack_visitor, -1 );
+        }
+        template<typename DataStreamType, typename T>
+        inline static void pack( boost::rpc::datastream<DataStreamType>& ds, const T& value )
+        {
+             detail::pack_message_visitor<DataStreamType> pack_visitor( ds );
+             boost::reflect::reflector<T>::visit( value, pack_visitor, -1 );
+        }
+    };
+    template<>
+    struct if_reflected<false>
+    {
+        template<typename DataStream, typename T>
+        inline static void unpack( DataStream& ds, T& value )
+        {
+            ds >> value;
+        }
+        template<typename DataStream, typename T>
+        inline static void pack( DataStream& ds, const T& value )
+        {
+            ds << value;
+        }
+    };
 
 } // namespace detail 
 
@@ -331,5 +380,5 @@ class pack_message_visitor
 
 } } }// boost::rpc::raw
 
-#endif //  _BOOST_RPC_DETAIL_PROTOCOL_BUFFERS_HPP_
+#endif //  _BOOST_RPC_DETAIL_RAW_HPP_
 
