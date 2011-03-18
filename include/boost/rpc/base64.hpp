@@ -1,3 +1,5 @@
+#ifndef _BOOST_RPC_BASE64_HPP
+#define _BOOST_RPC_BASE64_HPP
 /* 
    base64.cpp and base64.h
 
@@ -132,3 +134,4 @@ inline std::string base64_decode(std::string const& encoded_string) {
 
 
 } } // namespace boost::rpc
+#endif // _BOOST_RPC_BASE64_HPP
