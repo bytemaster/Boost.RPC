@@ -153,6 +153,15 @@ class unpack_message_visitor : public boost::reflect::visitor< unpack_message_vi
              }
          }
     }
+
+    template<typename First, typename Second>
+    void unpack( std::pair<First,Second>& c, boost::false_type _is_not_fundamental, boost::mpl::false_ _is_not_fusion_sequence)
+    {
+         unpack( c.first );
+         unpack( c.second );
+    }
+
+
     template<typename Class, typename Field, typename Alloc, template<typename,typename> class Container, typename Flags>
     void accept_member( Class& c, Container<Field,Alloc> (Class::*p), const char* name, Flags key )
     {
@@ -224,6 +233,14 @@ class pack_message_visitor : public boost::reflect::visitor< unpack_message_visi
              }
          }
     }
+
+    template<typename First, typename Second>
+    void pack( const std::pair<First,Second>& c, boost::false_type _is_not_fundamental, boost::mpl::false_ _is_not_fusion_sequence)
+    {
+         pack( c.first );
+         pack( c.second );
+    }
+
     template< typename T>
     void pack( const T& value, boost::false_type _is_not_fundamental, boost::mpl::false_ _is_not_fusion_sequence)
     {
