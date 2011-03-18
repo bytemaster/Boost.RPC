@@ -102,7 +102,7 @@ class json_visitor
             m_os<<std::setw(4*depth)<<" "<< '"'<<name<< "\" : ";
         }
         first = true;
-        boost::reflect::reflector<T>::visit( f, *this );
+        json::if_reflected<boost::reflect::reflector<T>::is_defined>::visit( *this, f );
         first = false;
    }
    template <typename Flags>
