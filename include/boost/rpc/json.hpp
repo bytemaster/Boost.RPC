@@ -116,11 +116,23 @@ class json_visitor
         first = false;
    }
 
-   template<typename Class, typename T, typename Flags>
-   void accept_member( Class c, T (Class::*p), const char* name, Flags f )
-   {
-       if_reflected<boost::reflect::reflector<typename boost::remove_const<T>::type>::is_defined>::add_field( *this, c.*p, name, f );
-   }
+    template<typename Class, typename T, typename Flags>
+    void accept_member( Class c, T (Class::*p), const char* name, Flags f )
+    {
+        if_reflected<boost::reflect::reflector<typename boost::remove_const<T>::type>::is_defined>::add_field( *this, c.*p, name, f );
+    }
+
+    template<typename Class,  template<typename,typename> class Container, typename Flags>
+    void accept_member( Class c, std::vector<char> (Class::*p), const char* name, Flags key )
+    {
+        std::vector<char> data;
+        raw::pack( data, c.*p );
+        std::string b64;
+        if( data.size() )
+            b64 = base64_encode( (unsigned char*)&data.front(), data.size() );
+        add_field( b64, name, key );
+    }
+
     template<typename Class, typename Field, typename Alloc, template<typename,typename> class Container, typename Flags>
     void accept_member( Class c, Container<Field,Alloc> (Class::*p), const char* name, Flags key )
     {
