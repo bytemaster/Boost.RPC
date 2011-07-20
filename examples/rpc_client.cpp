@@ -1,5 +1,4 @@
 #include "calculator.hpp"
-#include <boost/rpc/client.hpp>
 #include "cli.hpp"
 #include <boost/cmt/thread.hpp>
 #include <boost/lexical_cast.hpp>
@@ -42,12 +41,11 @@ void amain(int argc, char**argv ) {
             std::cerr<<"Error connecting to "<<argv[1]<<":"<<argv[2]<<"\n"; 
             return;
         }
-        rpc::json::client<Calculator>::ptr calc(new rpc::json::client<Calculator>(con));
-        
-        reflect::any<Calculator> s;
-        s= *calc;
-        cli  m_cli;
-        m_cli.start_visit(s);
+        boost::rpc::json::client<Calculator> calc(con);
+        boost::reflect::any_ptr<Calculator>* c = &calc;
+
+        reflect::any_ptr<Calculator> s = calc;
+        cli  m_cli(s);
 
         std::string line;
         std::string cmd;
@@ -55,7 +53,7 @@ void amain(int argc, char**argv ) {
         boost::posix_time::ptime start = boost::posix_time::microsec_clock::universal_time();
         double sum = 0;
         int i = 0;
-        for( i = 0; i < 100000; ++i ) {
+        for( i = 0; i < 10000; ++i ) {
             sum += calc->add(5);
         }
         boost::posix_time::ptime end = boost::posix_time::microsec_clock::universal_time();

@@ -18,10 +18,10 @@ namespace boost { namespace rpc { namespace json {
                             itr->second->set_value(v);
                             pending_req.erase(itr);
                         } else {
-                            elog( "unhandled message: '%1%'", json_spirit::write(v) );
+                            elog( "unhandled message: '%1%'", boost::json::write(v) );
                         }
                     } else {
-                        elog( "message has no 'id' field: '%1%'", json_spirit::write(v) );
+                        elog( "message has no 'id' field: '%1%'", boost::json::write(v) );
                     }
                 }
         };

@@ -1,5 +1,6 @@
 #ifndef _BOOST_RPC_JSON_SERVER_HPP_
 #define _BOOST_RPC_JSON_SERVER_HPP_
+#include <boost/reflect/any_ptr.hpp>
 #include <boost/rpc/json/connection.hpp>
 #include <boost/exception/all.hpp>
 
@@ -19,39 +20,44 @@ namespace boost { namespace rpc { namespace json {
 
                 friend class server_base_private;
                 class server_base_private* my;
+
+                struct visitor {
+                    template<typename Seq, typename Functor>
+                    struct rpc_functor {
+                        rpc_functor( Functor f ):m_func(f){}
+                        void operator()( const js::Value& params, js::Value& rtn ) {
+                            Seq paramv;
+                            unpack( params, paramv );
+                            //    typename boost::remove_reference<Functor>::type::result_type r = 
+                            pack( rtn, m_func(paramv) );
+                        }
+                        Functor m_func;
+                    };
+
+                    visitor( server_base& s ):m_server(s){};
+                    template<typename InterfaceName, typename M>
+                    bool accept( M& m, const char* name ) {
+                         m_server.m_methods[name] = rpc_functor<typename M::fused_params, M&>(m);
+                    }
+                    server_base& m_server;
+                };
+
+                friend struct visitor;
         };
-        
-
-       template<typename Seq, typename Functor>
-       struct rpc_functor {
-           rpc_functor( Functor f ):m_func(f){}
-           void operator()( const js::Value& params, js::Value& rtn ) {
-               Seq paramv;
-               unpack( params, paramv );
-               //    typename boost::remove_reference<Functor>::type::result_type r = 
-               pack( rtn, m_func(paramv) );
-           }
-           Functor m_func;
-       };
-
     } // namespace detail
 
     template<typename InterfaceType>
-    class server : public boost::reflect::any<InterfaceType>, 
-                   public boost::reflect::visitor<server<InterfaceType> >, 
-                   public detail::server_base {
+    class server : public detail::server_base {
         public:
             template<typename T>
             server( T v )
-            :reflect::any<InterfaceType>(v) {
-                 start_visit(*this); 
+            :m_interface(v) {
+                visitor vi(*this);
+                boost::reflect::reflector<InterfaceType>::visit( *m_interface, vi );
             }
 
-            template<typename InterfaceName, typename M>
-            bool accept( M& m, const char* name ) {
-                 m_methods[name] = detail::rpc_functor<typename M::fused_params, M&>(m);
-                 return true;
-            }
+        private:
+            boost::reflect::any_ptr<InterfaceType> m_interface; 
     };
 
 } } } // boost::rpc::json

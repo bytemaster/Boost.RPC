@@ -17,7 +17,7 @@ namespace boost { namespace rpc { namespace json { namespace tcp {
 
     void connection::send( const js::Value& v ) {
        std::stringstream ss;
-       json_spirit::write(v,ss, json_spirit::remove_trailing_zeros);
+       boost::json::write(v,ss, boost::json::remove_trailing_zeros);
        m_sock->write(ss.str().c_str(),ss.str().size());
     }
 
@@ -47,7 +47,7 @@ namespace boost { namespace rpc { namespace json { namespace tcp {
                 }
                 buf.push_back(*itr);
                 if( depth == 0 ) {
-                    json_spirit::read( buf, v );
+                    boost::json::read( buf, v );
                     m_recv_handler(v);
                     buf.resize(0);
                     v = js::Value();

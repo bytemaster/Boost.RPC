@@ -4,7 +4,7 @@ Boost.RPC - Remote Procedure Call library
 The goal of this library is to enable seamless remote procedure
 calls between C++ objects in different processes and machines.
 
-The Boost RPC library will leverage Boost.IDL to abstract
+The Boost RPC library will leverage Boost.Reflect to abstract
 the difference between classes on remote machines and local machines.
 
 The library will aim to support any number of different RPC protocols 
@@ -35,8 +35,79 @@ This library is being written with the following requirements in mind:
  - Network layer is abstraction allowing 3rd parties to provide TCP/IP,
     UDP, UDT, or other transport mechinism. 
 
+### Status ###
+
+A working json RPC library has been implemented using TCP as the transport.
+
+JSON RPC Client:
+
+    // calculator.hpp
+    struct Service {
+        std::string name()const;
+    };
+    struct Calculator : Service {
+        double add( double v );           
+        double add2( double v, double v2 );
+        double sub( double v );           
+        double mult( double v );           
+        double div( double v );           
+        double result()const;
+    };
+
+    BOOST_REFLECT_ANY( Service, BOOST_PP_SEQ_NIL, (name)(exit) )
+    BOOST_REFLECT_ANY( Calculator, (Service), (add)(add2)(sub)(mult)(div)(result) )
+
+    // client.cpp
+    rpc::json::tcp::connection::ptr con( new boost::rpc::json::tcp::connection() );
+    con->connect( host, port );
+    boost::rpc::json::client<Calculator> calc(con);
+
+    // make the call
+    double r = calc->add2( 5, 6 );
+
+JSON RPC Server:
+    #include "calculator.hpp"
+
+    // define your service
+    class CalculatorServer {
+        public:
+            CalculatorServer():m_result(0){}
+
+            std::string name()const            { return "CalculatorServer";  }
+            double add( double v )             { return m_result += v;       }
+            double sub( double v )             { return m_result -= v;       }
+            double mult( double v )            { return m_result *= v;       }
+            double div( double v )             { return m_result /= v;       }
+            double add2( double v, double v2 ) { return m_result += v + v2;  }
+
+            double result()const { return m_result; }
+
+        private:
+            double m_result;
+    };
+    // create your service
+    CalculatorServer* calc =new CalculatorServer());
+
+    // create a server of type calculator, see RPC Client
+    boost::rpc::json::server<Calculator> calc_serv(calc);
+
+    // listen on a tcp port for new json tcp connections
+    boost::rpc::json::tcp::listen( port, 
+        boost::bind(&boost::rpc::json::server<Calculator>::add_connection, 
+                    &calc_serv, _1) );
+
+
+Things to notice about the above examples is that the CalculatorServer class is unrelated to
+the Calculator interface other than that it implements the methods defined by Calculator and
+its base class Service.  The calc_serv will work with any type that provides those methods. 
+
+
 ### Dependencies ###
- - Boost.IDL will be used to provide reflection/abstraction of class
+ - Boost.CMT is used for asynchronous calls/multi-tasking
+ - Boost.Context is used by Boost.CMT
+ - Boost.Atomic is used by Boost.CMT
+ - Boost.Move is used by Boost.Context
+ - Boost.Reflect will be used to provide reflection/abstraction of class
     interfaces and message structures.
  - Boost.Optional will be used for optional message fields.
  - Boost.Function will be used for generic callbacks/delegates.
@@ -59,7 +130,7 @@ and 'messy'.
 
 I wanted to have the benefits of protocol buffers, without the
 pitfalls of using code generation.  I also wanted to leverage other
-benefits of Boost.IDL to enable reflection as well as serialization
+benefits of Boost.Reflect to enable reflection as well as serialization
 in other formats such as JSON.
 
 My solution looks like this:
@@ -88,8 +159,8 @@ My solution looks like this:
         std::vector<PhoneNumber> phone;
     };
 
-    BOOST_IDL_REFLECT( Person, BOOST_IDL_BASE, (name)(id)(email)(phone) )
-    BOOST_IDL_REFLECT( Person::PhoneNumber, BOOST_IDL_BASE, (number)(type) )
+    BOOST_REFLECT( Person, BOOST_IDL_BASE, (name)(id)(email)(phone) )
+    BOOST_REFLECT( Person::PhoneNumber, BOOST_IDL_BASE, (number)(type) )
 
 
 Then you can use the following methods to serialize the message:

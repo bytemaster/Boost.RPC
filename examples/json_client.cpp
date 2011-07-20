@@ -1,12 +1,11 @@
 #include <boost/cmt/thread.hpp>
 #include <boost/rpc/json/tcp/connection.hpp>
-#include <json_spirit/json_spirit_stream_reader.h>
-#include <json_spirit/json_spirit_writer.h>
+#include <boost/json/writer.h>
 
-namespace js = json_spirit;
+namespace js = boost::json;
 void handle_json( const js::Value& v ) {
     slog( "received" );
-    json_spirit::write(v,std::cerr);
+    boost::json::write(v,std::cerr);
 }
 
 int async_main( int argc, char** argv ) {

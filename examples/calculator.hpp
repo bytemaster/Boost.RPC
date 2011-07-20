@@ -2,7 +2,7 @@
 #define _BOOST_REFLECT_CALCULATOR_HPP
 #include <boost/reflect/mirror_interface.hpp>
 #include <boost/reflect/reflect.hpp>
-#include <boost/reflect/any.hpp>
+#include <boost/reflect/any_ptr.hpp>
 
 struct Service
 {

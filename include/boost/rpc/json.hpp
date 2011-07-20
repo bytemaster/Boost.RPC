@@ -1,7 +1,6 @@
 #ifndef _BOOST_RPC_JSON_HPP_
 #define _BOOST_RPC_JSON_HPP_
 #include <boost/reflect/reflect.hpp>
-#include <boost/reflect/any.hpp>
 
 #include <boost/rpc/datastream.hpp>
 #include <boost/rpc/varint.hpp>
@@ -93,7 +92,7 @@ namespace boost { namespace rpc { namespace json {
     void unpack( const js::Value& jsv, std::map<std::string,Value>& value );
 
     namespace detail {
-        struct pack_object_visitor : public boost::reflect::visitor<pack_object_visitor>{
+        struct pack_object_visitor {
             pack_object_visitor(js::Object& _val):obj(_val){}
             template<typename T>
             void start( const T&, const char* ){}
@@ -101,30 +100,31 @@ namespace boost { namespace rpc { namespace json {
             void end( const T&, const char* ){}
             template<typename T>
             void not_found( const T&, uint32_t ){}
-	    /**
-		VC++ does not understand the difference of return types, so an extra layer is
-		needed.
-	    */
-	    template<typename T>
-	    void pack_helper( const T& v, const char* name ) {
-                 obj.push_back( js::Pair(name,js::Value()) );
-                 boost::rpc::json::pack( obj.back().value_, v );
-	    }
-	    template<typename T>
-	    void pack_helper( const boost::optional<T>& v ) {
-	    	if( !!v ) {
-                   obj.push_back( js::Pair(name,js::Value()) );
-                   boost::rpc::json::pack( obj.back().value_, *v );
-		}
-	    }
+            /**
+            VC++ does not understand the difference of return types, so an extra layer is
+            needed.
+            */
+            template<typename T>
+            void pack_helper( const T& v, const char* name ) {
+                     obj.push_back( js::Pair(name,js::Value()) );
+                     boost::rpc::json::pack( obj.back().value_, v );
+            }
+            template<typename T>
+            void pack_helper( const boost::optional<T>& v, const char* name ) {
+                if( !!v ) {
+                       obj.push_back( js::Pair(name,js::Value()) );
+                       boost::rpc::json::pack( obj.back().value_, *v );
+                }
+            }
+
             template<typename Class, typename T, typename Flags>
             void accept_member( const Class& c, T (Class::*p), const char* name, Flags key ) {
-	    	pack_helper( c.*p, name );
+        	pack_helper( c.*p, name );
             }
 
             js::Object& obj;
         };
-        struct unpack_object_visitor : public boost::reflect::visitor<unpack_object_visitor>{
+        struct unpack_object_visitor  {
             unpack_object_visitor(const js::Object& _val):obj(_val){}
             template<typename T>
             void start( const T&, const char* ){}
