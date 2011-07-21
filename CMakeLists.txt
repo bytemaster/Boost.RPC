@@ -8,7 +8,7 @@ include_directories( ../atomic/include )
 
 add_subdirectory( examples)
 
-SET( libraries json_spirit )
+SET( libraries boost_json )
 SET( sources 
     src/json/tcp/connection.cpp
     src/json/client.cpp
