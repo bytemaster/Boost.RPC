@@ -12,17 +12,28 @@ class CalculatorServer
 
         std::string name()const            { return "CalculatorServer";  }
         int   exit()                       { ::exit(0);                  }
-        double add( double v )             { return m_result += v;       }
-        double sub( double v )             { return m_result -= v;       }
-        double mult( double v )            { return m_result *= v;       }
-        double div( double v )             { return m_result /= v;       }
-        double add2( double v, double v2 ) { return m_result += v + v2;  }
+        double add( double v )             { m_result += v;    got_result(m_result);  return m_result;  }
+        double sub( double v )             { m_result -= v;     got_result(m_result);  return m_result;  }  
+        double mult( double v )            { m_result *= v;       got_result(m_result);  return m_result;  }
+        double div( double v )             { m_result /= v;       got_result(m_result);  return m_result;  }
+        double add2( double v, double v2 ) { m_result += v + v2;  got_result(m_result);  return m_result;  }
 
         double result()const { return m_result; }
+
+        boost::signal<void(double)> got_result;
+        boost::signal<int(double)>  count;
 
     private:
         double m_result;
 };
+void print_result( double r ) {
+    std::cerr<<"result: "<<r<<std::endl;
+}
+
+void create_session( const boost::shared_ptr<CalculatorServer>& calc, const boost::rpc::json::connection::ptr& con ) {
+    std::cerr<<"new connection\n";
+    new boost::rpc::json::server<Calculator>( calc, con );
+}
 
 int main2( int argc, char** argv ) {
     if( argc <= 1 )
@@ -34,8 +45,9 @@ int main2( int argc, char** argv ) {
     try {
 
         boost::shared_ptr<CalculatorServer> calc(new CalculatorServer());
-        boost::rpc::json::server<Calculator> calcs(calc);
-        boost::rpc::json::tcp::listen( atoi(argv[1]), boost::bind(&boost::rpc::json::server<Calculator>::add_connection, &calcs, _1) );
+        calc->got_result.connect(print_result);
+
+        boost::rpc::json::tcp::listen( atoi(argv[1]), boost::bind(create_session, calc, _1) );
 
         boost::cmt::usleep(1000000ll*60*60);
     } catch ( const boost::exception& e )

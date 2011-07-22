@@ -19,7 +19,7 @@ namespace boost { namespace rpc { namespace json { namespace tcp {
             bool connect( const std::string& hostname, const std::string& port );
 
             void send( const js::Value& v );
-            void set_recv_handler( const boost::function<void(const js::Value& v)>& recv );
+            void start();
 
         private:
             void read_loop();

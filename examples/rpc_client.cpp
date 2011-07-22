@@ -27,6 +27,9 @@ int main( int argc, char** argv )
     boost::cmt::async( boost::bind( amain, argc, argv ) );
     return boost::cmt::exec();
 }
+void print_result( double r ) {
+    std::cerr<<"result: "<<r<<std::endl;
+}
 void amain(int argc, char**argv ) {
 
     if( argc <= 2 )
@@ -42,14 +45,17 @@ void amain(int argc, char**argv ) {
             return;
         }
         boost::rpc::json::client<Calculator> calc(con);
-        boost::reflect::any_ptr<Calculator>* c = &calc;
-
         reflect::any_ptr<Calculator> s = calc;
+
+        s->got_result.connect(&print_result);
+
         cli  m_cli(s);
 
         std::string line;
         std::string cmd;
         std::string args;
+
+        /*
         boost::posix_time::ptime start = boost::posix_time::microsec_clock::universal_time();
         double sum = 0;
         int i = 0;
@@ -59,6 +65,7 @@ void amain(int argc, char**argv ) {
         boost::posix_time::ptime end = boost::posix_time::microsec_clock::universal_time();
         uint64_t us = (end-start).total_microseconds();
         std::cerr << i << " add(5) took  " << us << "us   " << double(i) / (us/1000000.0) << "invoke/sec\n";
+        */
 
         while( true )
         {
@@ -66,7 +73,11 @@ void amain(int argc, char**argv ) {
             std::getline( std::cin, line );
             cmd = line.substr( 0, line.find('(') );
             args = line.substr( cmd.size(), line.size() );
+            try {
             std::cerr << m_cli[cmd](args) << std::endl;
+            } catch ( const std::exception& e ) {
+            std::cerr << e.what() << std::endl;
+            }
         }
     
     } catch ( const boost::exception& e )

@@ -11,8 +11,7 @@ add_subdirectory( examples)
 SET( libraries boost_json )
 SET( sources 
     src/json/tcp/connection.cpp
-    src/json/client.cpp
-    src/json/server.cpp
+    src/json/connection.cpp
     src/json/tcp/server.cpp
              )
 

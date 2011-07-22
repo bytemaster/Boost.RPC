@@ -3,30 +3,34 @@
 
 namespace boost { namespace rpc { namespace json { namespace tcp {
     connection::connection( const connection::sock_ptr& p )
-    :m_sock(p) {
-    }
+    :m_sock(p) {}
 
     bool connection::connect( const std::string& hostname, const std::string& port ) {
         m_sock = sock_ptr( new boost::cmt::asio::tcp::socket() );
         boost::system::error_code ec= m_sock->connect( boost::cmt::asio::tcp::resolve( hostname, port ).front() );
-        if( !ec ) {
+        if( ec ) {
             elog( "%1%", boost::system::system_error(ec).what() );
+            return false;
         }
         return true;
     }
 
     void connection::send( const js::Value& v ) {
        std::stringstream ss;
+       std::cerr<<"send:";
+       boost::json::write(v,std::cerr, boost::json::remove_trailing_zeros);
+       std::cerr<<"\n";
        boost::json::write(v,ss, boost::json::remove_trailing_zeros);
        m_sock->write(ss.str().c_str(),ss.str().size());
     }
-
-    void connection::set_recv_handler( const boost::function<void(const js::Value& v )>& v ) {
-        m_recv_handler = v;
+    
+    void connection::start() {
+        wlog("start read loop" );
         async( boost::bind( &connection::read_loop, this ) );
     }
 
     void connection::read_loop() {
+        wlog("" );
         try {
             js::Value v;
             boost::cmt::asio::tcp::socket::iterator itr(m_sock.get());
@@ -47,8 +51,10 @@ namespace boost { namespace rpc { namespace json { namespace tcp {
                 }
                 buf.push_back(*itr);
                 if( depth == 0 ) {
+                    std::cerr<<"recv:";
                     boost::json::read( buf, v );
-                    m_recv_handler(v);
+                    std::cerr<<buf<<std::endl;
+                    boost::cmt::async( boost::bind(&connection::on_receive, this, v) );
                     buf.resize(0);
                     v = js::Value();
                 }
@@ -58,5 +64,6 @@ namespace boost { namespace rpc { namespace json { namespace tcp {
             elog( "%1%", boost::diagnostic_information(e) );
             throw;
         }
+        wlog("exit read loop" );
     }
 } } } }  // boost::rpc::json::tcp

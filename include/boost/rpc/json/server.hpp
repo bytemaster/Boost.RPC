@@ -6,57 +6,30 @@
 
 namespace boost { namespace rpc { namespace json {
 
-    namespace detail {
-        class server_base {
-            public:
-                server_base();
-                virtual ~server_base();
-
-                void add_connection( const boost::rpc::json::connection::ptr& con );
-                
-            protected:
-                typedef std::map<std::string, boost::function<void(const js::Value&, js::Value&)> > method_map;
-                method_map   m_methods;
-
-                friend class server_base_private;
-                class server_base_private* my;
-
-                struct visitor {
-                    template<typename Seq, typename Functor>
-                    struct rpc_functor {
-                        rpc_functor( Functor f ):m_func(f){}
-                        void operator()( const js::Value& params, js::Value& rtn ) {
-                            Seq paramv;
-                            unpack( params, paramv );
-                            //    typename boost::remove_reference<Functor>::type::result_type r = 
-                            pack( rtn, m_func(paramv) );
-                        }
-                        Functor m_func;
-                    };
-
-                    visitor( server_base& s ):m_server(s){};
-                    template<typename InterfaceName, typename M>
-                    bool accept( M& m, const char* name ) {
-                         m_server.m_methods[name] = rpc_functor<typename M::fused_params, M&>(m);
-                    }
-                    server_base& m_server;
-                };
-
-                friend struct visitor;
-        };
-    } // namespace detail
-
     template<typename InterfaceType>
-    class server : public detail::server_base {
+    class server {
         public:
             template<typename T>
-            server( T v )
-            :m_interface(v) {
-                visitor vi(*this);
+            server( T v, const connection::ptr& c )
+            :m_interface(v),m_con(c) {
+                visitor vi(*c);
                 boost::reflect::reflector<InterfaceType>::visit( *m_interface, vi );
+                m_con->start();
             }
 
         private:
+            struct visitor {
+                visitor( connection& c ):m_con(c){};
+                template<typename InterfaceName, typename M>
+                bool accept( M& m, const char* name ) {
+                     slog( "add method %1%", name );
+                     m_con.add_method_handler( name, 
+                        detail::rpc_recv_functor<typename M::fused_params, 
+                                         M&, M::is_signal>(m,m_con,name) );
+                }
+                connection& m_con;
+            };
+            connection::ptr                        m_con;
             boost::reflect::any_ptr<InterfaceType> m_interface; 
     };
 
