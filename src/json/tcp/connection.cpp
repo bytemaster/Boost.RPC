@@ -3,7 +3,10 @@
 
 namespace boost { namespace rpc { namespace json { namespace tcp {
     connection::connection( const connection::sock_ptr& p )
-    :m_sock(p) {}
+    :m_sock(p) {
+    }
+
+    bool connection::is_connected()const { return m_connected; }
 
     bool connection::connect( const std::string& hostname, const std::string& port ) {
         m_sock = sock_ptr( new boost::cmt::asio::tcp::socket() );
@@ -25,12 +28,11 @@ namespace boost { namespace rpc { namespace json { namespace tcp {
     }
     
     void connection::start() {
-        wlog("start read loop" );
         async( boost::bind( &connection::read_loop, this ) );
     }
 
     void connection::read_loop() {
-        wlog("" );
+        m_connected = true;
         try {
             js::Value v;
             boost::cmt::asio::tcp::socket::iterator itr(m_sock.get());
@@ -64,6 +66,7 @@ namespace boost { namespace rpc { namespace json { namespace tcp {
             elog( "%1%", boost::diagnostic_information(e) );
             throw;
         }
-        wlog("exit read loop" );
+        m_connected = false;
+        disconnected();
     }
 } } } }  // boost::rpc::json::tcp

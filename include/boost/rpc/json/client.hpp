@@ -27,7 +27,6 @@ namespace boost { namespace rpc { namespace json {
 
         template<typename InterfaceName, typename M>
         bool accept( M& m, const char* name ) {
-          slog( "add method %1%", name );
           detail::if_signal<M::is_signal>::set_delegate( m_con, m, name ); 
           return true;
         }

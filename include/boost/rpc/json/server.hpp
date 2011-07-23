@@ -9,6 +9,8 @@ namespace boost { namespace rpc { namespace json {
     template<typename InterfaceType>
     class server {
         public:
+            typedef boost::shared_ptr<server> ptr;
+
             template<typename T>
             server( T v, const connection::ptr& c )
             :m_interface(v),m_con(c) {
@@ -22,7 +24,6 @@ namespace boost { namespace rpc { namespace json {
                 visitor( connection& c ):m_con(c){};
                 template<typename InterfaceName, typename M>
                 bool accept( M& m, const char* name ) {
-                     slog( "add method %1%", name );
                      m_con.add_method_handler( name, 
                         detail::rpc_recv_functor<typename M::fused_params, 
                                          M&, M::is_signal>(m,m_con,name) );

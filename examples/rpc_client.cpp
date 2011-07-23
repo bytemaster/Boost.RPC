@@ -7,6 +7,7 @@
 #include <boost/rpc/json/client.hpp>
 #include <boost/rpc/json/tcp/connection.hpp>
 
+#include <boost/bind.hpp>
 
 /**
  *  This is a simple RPC client that will connect to an
@@ -30,6 +31,14 @@ int main( int argc, char** argv )
 void print_result( double r ) {
     std::cerr<<"result: "<<r<<std::endl;
 }
+float my_num(double in) { return in / 3.1415; }
+
+std::string getline() {
+    std::string s;
+    std::getline( std::cin, s );
+    return s;
+}
+
 void amain(int argc, char**argv ) {
 
     if( argc <= 2 )
@@ -48,6 +57,7 @@ void amain(int argc, char**argv ) {
         reflect::any_ptr<Calculator> s = calc;
 
         s->got_result.connect(&print_result);
+        s->get_num.connect( &my_num );
 
         cli  m_cli(s);
 
@@ -55,11 +65,11 @@ void amain(int argc, char**argv ) {
         std::string cmd;
         std::string args;
 
-        /*
         boost::posix_time::ptime start = boost::posix_time::microsec_clock::universal_time();
+        /*
         double sum = 0;
         int i = 0;
-        for( i = 0; i < 10000; ++i ) {
+        for( i = 0; i < 100; ++i ) {
             sum += calc->add(5);
         }
         boost::posix_time::ptime end = boost::posix_time::microsec_clock::universal_time();
@@ -67,10 +77,11 @@ void amain(int argc, char**argv ) {
         std::cerr << i << " add(5) took  " << us << "us   " << double(i) / (us/1000000.0) << "invoke/sec\n";
         */
 
+        boost::cmt::thread* getline_thread = boost::cmt::thread::create();
         while( true )
         {
             std::cerr << "Enter Method: ";
-            std::getline( std::cin, line );
+            line = getline_thread->sync<std::string>( getline );
             cmd = line.substr( 0, line.find('(') );
             args = line.substr( cmd.size(), line.size() );
             try {

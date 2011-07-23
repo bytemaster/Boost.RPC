@@ -26,7 +26,9 @@ namespace boost { namespace rpc { namespace json {
 
       virtual void send( const js::Value& v )=0;
       virtual void start()=0;
+      virtual bool is_connected()const = 0;
 
+      boost::signal<void()> disconnected;
     protected:
       void on_receive( const js::Value& v );
 
@@ -113,8 +115,7 @@ namespace boost { namespace rpc { namespace json {
       :m_name(name),m_con(c),m_func(f){
         m_sig_con = m_func.connect( rpc_send_functor<Seq,
                                     typename functor_type::result_type>( m_con, m_name ) );
-        wlog( "connecting mirror::signal to send functor" );
-    //    m_sig_con.block();
+        m_sig_con.block(); 
         c.add_signal_connection( name, m_sig_con );
       }
 
@@ -161,7 +162,6 @@ namespace boost { namespace rpc { namespace json {
     struct if_signal<true> {
       template<typename M>
       static void set_delegate( connection& c, M& m, const char* name ){
-        wlog( "m = rpc_send_functor.." );
         m = detail::rpc_send_functor<typename M::fused_params, 
                                      typename M::result_type>(c, name);
 

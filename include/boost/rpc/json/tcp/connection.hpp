@@ -17,6 +17,7 @@ namespace boost { namespace rpc { namespace json { namespace tcp {
             connection(){}
 
             bool connect( const std::string& hostname, const std::string& port );
+            bool is_connected()const;
 
             void send( const js::Value& v );
             void start();
@@ -25,6 +26,7 @@ namespace boost { namespace rpc { namespace json { namespace tcp {
             void read_loop();
             boost::function<void(const js::Value& v)> m_recv_handler;
             sock_ptr                                  m_sock;
+            bool                                      m_connected;
     };
 
 } } } } // boost::rpc::json::tcp

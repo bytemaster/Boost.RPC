@@ -27,12 +27,9 @@ namespace boost { namespace rpc { namespace json {
           std::string sig   = boost::fusion::at_c<0>(param);
           int         count = boost::fusion::at_c<1>(param);
 
-          slog( "rpc connect signal %1% %2%", sig, count );
           signal_map::iterator itr = signals.find(sig);
           if( itr != signals.end() ) {
-              slog( "blocked state %1% connected %2%", itr->second.blocked(), itr->second.connected() );
               itr->second.block( count == 0 );
-              slog( "blocked state %1%", itr->second.blocked() );
               return boost::reflect::void_t();
           }
           error_object e;
@@ -50,14 +47,10 @@ namespace boost { namespace rpc { namespace json {
                 boost::bind( &connection_private::rpc_connect_signal, my, _1 ), 
                 *this, "rpc_connect_signal" ) );
   }
-  connection::~connection() {
-    delete my;
-  }
+  connection::~connection() { delete my; }
 
   void connection::add_signal_connection( const std::string& name, 
                                           const boost::signals::connection& c ) {
-    slog( "adding signal connection blocked: %1% connected %2%", 
-                    c.blocked(), c.connected() );
     my->signals[name] = c;
   }
   void connection::add_method_handler( const std::string& name, const json_method& h ) {

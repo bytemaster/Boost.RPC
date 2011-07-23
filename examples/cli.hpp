@@ -1,5 +1,5 @@
-#ifndef _BOOST_IDL_CLI_HPP_
-#define _BOOST_IDL_CLI_HPP_
+#ifndef _BOOST_REFLECT_CLI_HPP_
+#define _BOOST_REFLECT_CLI_HPP_
 #include <sstream>
 #include <iomanip>
 #include <iostream>
