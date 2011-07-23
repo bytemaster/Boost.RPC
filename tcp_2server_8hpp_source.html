@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
 <meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
-<title>Boost.RPC: Main Page</title>
+<title>Boost.RPC: /Users/dlarimer/dev/libs/rpc/include/boost/rpc/json/tcp/server.hpp Source File</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <link href="search/search.css" rel="stylesheet" type="text/css"/>
 <script type="text/javaScript" src="search/search.js"></script>
@@ -17,9 +17,9 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="navigation" id="top">
   <div class="tabs">
     <ul>
-      <li class="current"><a href="index.html"><span>Main&nbsp;Page</span></a></li>
+      <li><a href="index.html"><span>Main&nbsp;Page</span></a></li>
       <li><a href="annotated.html"><span>Classes</span></a></li>
-      <li><a href="files.html"><span>Files</span></a></li>
+      <li class="current"><a href="files.html"><span>Files</span></a></li>
       <li>
         <div id="MSearchBox" class="MSearchBoxInactive">
         <img id="MSearchSelect" src="search/search.png"
@@ -35,9 +35,21 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
       </li>
     </ul>
   </div>
-</div>
-<div class="contents">
-<h1>Boost.RPC Documentation</h1></div>
+  <div class="tabs">
+    <ul>
+      <li><a href="files.html"><span>File&nbsp;List</span></a></li>
+    </ul>
+  </div>
+<h1>/Users/dlarimer/dev/libs/rpc/include/boost/rpc/json/tcp/server.hpp</h1><div class="fragment"><pre class="fragment"><a name="l00001"></a>00001 <span class="preprocessor">#include &lt;boost/rpc/json/tcp/connection.hpp&gt;</span>
+<a name="l00002"></a>00002 
+<a name="l00003"></a>00003 <span class="keyword">namespace </span>boost { <span class="keyword">namespace </span>rpc { <span class="keyword">namespace </span>json { <span class="keyword">namespace </span>tcp {
+<a name="l00004"></a>00004 
+<a name="l00005"></a>00005     <span class="keyword">typedef</span> boost::function&lt;void(const boost::rpc::json::tcp::connection::ptr&amp;)&gt; handler;
+<a name="l00006"></a>00006 
+<a name="l00007"></a>00007     <span class="keywordtype">void</span> listen( uint16_t port, <span class="keyword">const</span> handler&amp; handle );
+<a name="l00008"></a>00008 
+<a name="l00009"></a>00009 } } } } <span class="comment">// boost::rpc::json::tcp</span>
+</pre></div></div>
 <!--- window showing the filter options -->
 <div id="MSearchSelectWindow"
      onmouseover="return searchBox.OnSearchSelectShow()"
