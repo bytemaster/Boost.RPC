@@ -7,7 +7,9 @@
 #include <boost/rpc/message.hpp>
 
 namespace boost { namespace rpc { namespace json {
-
+  /**
+   * @brief Maps methods on InterfaceType to remote calls via a json::connection
+   */
   template<typename InterfaceType>
   class client : public boost::reflect::any_ptr<InterfaceType>
   {

@@ -2,7 +2,6 @@
 #define _BOOST_RPC_JSON_HPP_
 #include <boost/reflect/reflect.hpp>
 
-#include <boost/rpc/datastream.hpp>
 #include <boost/rpc/varint.hpp>
 #include <boost/rpc/required.hpp>
 #include <boost/rpc/errors.hpp>

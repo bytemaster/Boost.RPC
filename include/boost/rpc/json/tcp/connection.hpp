@@ -7,7 +7,9 @@
 #include <boost/cmt/asio.hpp>
 
 namespace boost { namespace rpc { namespace json { namespace tcp {
-
+    /**
+     * @brief Sends and receives JSON-RPC over a TCP connection.
+     */
     class connection : public boost::rpc::json::connection {
         public:
             typedef boost::cmt::retainable_ptr<connection> ptr;

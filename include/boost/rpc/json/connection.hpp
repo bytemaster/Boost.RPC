@@ -10,7 +10,13 @@
 #include <boost/rpc/message.hpp>
 
 namespace boost { namespace rpc { namespace json {
-
+  /**
+   *  @brief JSON-RPC connection interface.
+   *
+   *  This class serves as the base class for various transports such as TCP, UDP, etc and
+   *  provides a common interface as well as default implementation of common state-handling
+   *  logic such as waiting for return values and managing signal connections.
+   */
   class connection : public boost::cmt::retainable {
     public:
       typedef boost::cmt::retainable_ptr<connection>              ptr;
@@ -86,7 +92,7 @@ namespace boost { namespace rpc { namespace json {
       Functor m_func;
     };
 
-    /**
+    /*
      *  Blocks a signal if it is currently unblocked and 
      *  unblocks it when it goes out of scope if it was blocked
      *  when constructed. 

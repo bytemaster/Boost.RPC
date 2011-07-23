@@ -69,7 +69,7 @@ namespace detail {
         template<typename Class>
         void end( Class, const char* anem ){}
     
-        /**
+        /*
          *  This method handles all fundamental types
          */
         template<typename T, typename Flags>
@@ -84,7 +84,7 @@ namespace detail {
             is >> value;
             error = !is.valid();
         }
-        /**
+        /*
          *  This method handles all fundamental types
          */
         template<typename T, typename Flags>
@@ -93,7 +93,7 @@ namespace detail {
             dlog( "key %1%  m_field %2%  m_type %3%", key, m_field, m_type );
             unpack( value, name, key, typename boost::is_fundamental<T>::type() );
         }
-        /**
+        /*
          *  This method handles the general case where T is a nested type 
          *      (not string,varint,fundamental,container,optional, or required)
          */
@@ -193,7 +193,7 @@ namespace detail {
             unpack( *value, name, key, typename boost::is_fundamental<T>::type() );
         }
 
-        /**
+        /*
          *  This is the method called by the visitor, it gets dispatched to the proper
          *  unpack mehtod.
          */
@@ -292,7 +292,7 @@ namespace detail {
         return !is.valid();
     }
 
-    /**
+    /*
      *  By default, we can simply use the unpack_field() calls which use
      *  reflect::reflect<>, but this class is specialized for fusion sequences.
      */
@@ -322,13 +322,13 @@ namespace detail {
             return true;
         }
     };
-    /**
+    /*
      *  Specialization for fusion sequences.
      */
     template<>
     struct unpack_message_selector<boost::integral_constant<bool, true> >
     {
-        /**
+        /*
          *  Run-time access to boost::fusion::vector<> requires special support
          *  to provide "random access" to the fields.  
          *
@@ -392,7 +392,7 @@ namespace detail {
     };
 
 
-    /**
+    /*
      *  Iterates over the fields in the message and unpacks each
      *  field as it is found.
      */
@@ -416,7 +416,7 @@ class pack_message_visitor
     template<typename Class>
     void end( Class, const char* anem ){}
 
-    /**
+    /*
      *  This method handles all fundamental types
      */
     template<typename T, typename Flags>
@@ -426,7 +426,7 @@ class pack_message_visitor
         m_os << value;
     }
 
-    /**
+    /*
      *  This method handles the general case where T is a nested type 
      *      (not string,varint,fundamental,container,optional, or required)
      */
