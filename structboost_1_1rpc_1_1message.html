@@ -50,32 +50,28 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <p><code>#include &lt;<a class="el" href="message_8hpp_source.html">message.hpp</a>&gt;</code></p>
 
 <p><a href="structboost_1_1rpc_1_1message-members.html">List of all members.</a></p>
-<table border="0" cellpadding="0" cellspacing="0">
-<tr><td colspan="2"><h2>Public Member Functions</h2></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a9859785fdac775cadfed174647d32383"></a><!-- doxytag: member="boost::rpc::message::message" ref="a9859785fdac775cadfed174647d32383" args="(const std::string &amp;name)" -->
-&nbsp;</td><td class="memItemRight" valign="bottom"><b>message</b> (const std::string &amp;name)</td></tr>
-<tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ae59dc487490d6af491884717a358b9b8"></a><!-- doxytag: member="boost::rpc::message::message" ref="ae59dc487490d6af491884717a358b9b8" args="(const std::string &amp;name, const std::string &amp;param)" -->
-&nbsp;</td><td class="memItemRight" valign="bottom"><b>message</b> (const std::string &amp;name, const std::string &amp;param)</td></tr>
-<tr><td colspan="2"><h2>Public Attributes</h2></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a5594b8cdb86b8e2103a66c5625495f74"></a><!-- doxytag: member="boost::rpc::message::id" ref="a5594b8cdb86b8e2103a66c5625495f74" args="" -->
-optional&lt; signed_int &gt;&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="structboost_1_1rpc_1_1message.html#a5594b8cdb86b8e2103a66c5625495f74">id</a></td></tr>
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Used to pair request/response. <br/></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a9d83fd7cd27b660884dae8667e826f84"></a><!-- doxytag: member="boost::rpc::message::method_id" ref="a9d83fd7cd27b660884dae8667e826f84" args="" -->
-optional&lt; signed_int &gt;&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="structboost_1_1rpc_1_1message.html#a9d83fd7cd27b660884dae8667e826f84">method_id</a></td></tr>
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Used for effecient calls. <br/></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a70fe138a96368c2231726560c20cfe00"></a><!-- doxytag: member="boost::rpc::message::method" ref="a70fe138a96368c2231726560c20cfe00" args="" -->
-optional&lt; std::string &gt;&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="structboost_1_1rpc_1_1message.html#a70fe138a96368c2231726560c20cfe00">method</a></td></tr>
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Used to call by name. <br/></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a1e9c8d8797dde2e2c4eaa0b29458bf1a"></a><!-- doxytag: member="boost::rpc::message::params" ref="a1e9c8d8797dde2e2c4eaa0b29458bf1a" args="" -->
-optional&lt; std::string &gt;&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="structboost_1_1rpc_1_1message.html#a1e9c8d8797dde2e2c4eaa0b29458bf1a">params</a></td></tr>
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">JSON Param Array. <br/></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a44814fa0531df7d9b96a975819f07cc0"></a><!-- doxytag: member="boost::rpc::message::result" ref="a44814fa0531df7d9b96a975819f07cc0" args="" -->
-optional&lt; std::string &gt;&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="structboost_1_1rpc_1_1message.html#a44814fa0531df7d9b96a975819f07cc0">result</a></td></tr>
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Return value. <br/></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a86b5cebff581feb3d913d4f89d43087f"></a><!-- doxytag: member="boost::rpc::message::error" ref="a86b5cebff581feb3d913d4f89d43087f" args="" -->
-optional&lt; <a class="el" href="structboost_1_1rpc_1_1error__object.html">error_object</a> &gt;&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="structboost_1_1rpc_1_1message.html#a86b5cebff581feb3d913d4f89d43087f">error</a></td></tr>
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Used in case of errors. <br/></td></tr>
-</table>
+<h2>Public Member Functions</h2>
+<ul>
+<li><a class="anchor" id="a9859785fdac775cadfed174647d32383"></a><!-- doxytag: member="boost::rpc::message::message" ref="a9859785fdac775cadfed174647d32383" args="(const std::string &amp;name)" -->
+<b>message</b> (const std::string &amp;name)
+<li><a class="anchor" id="ae59dc487490d6af491884717a358b9b8"></a><!-- doxytag: member="boost::rpc::message::message" ref="ae59dc487490d6af491884717a358b9b8" args="(const std::string &amp;name, const std::string &amp;param)" -->
+<b>message</b> (const std::string &amp;name, const std::string &amp;param)
+</ul>
+<h2>Public Attributes</h2>
+<ul>
+<li><a class="anchor" id="a5594b8cdb86b8e2103a66c5625495f74"></a><!-- doxytag: member="boost::rpc::message::id" ref="a5594b8cdb86b8e2103a66c5625495f74" args="" -->
+optional&lt; signed_int &gt; <a class="el" href="structboost_1_1rpc_1_1message.html#a5594b8cdb86b8e2103a66c5625495f74">id</a>
+<dl class="el"><dd class="mdescRight">Used to pair request/response. <br/></dl><li><a class="anchor" id="a9d83fd7cd27b660884dae8667e826f84"></a><!-- doxytag: member="boost::rpc::message::method_id" ref="a9d83fd7cd27b660884dae8667e826f84" args="" -->
+optional&lt; signed_int &gt; <a class="el" href="structboost_1_1rpc_1_1message.html#a9d83fd7cd27b660884dae8667e826f84">method_id</a>
+<dl class="el"><dd class="mdescRight">Used for effecient calls. <br/></dl><li><a class="anchor" id="a70fe138a96368c2231726560c20cfe00"></a><!-- doxytag: member="boost::rpc::message::method" ref="a70fe138a96368c2231726560c20cfe00" args="" -->
+optional&lt; std::string &gt; <a class="el" href="structboost_1_1rpc_1_1message.html#a70fe138a96368c2231726560c20cfe00">method</a>
+<dl class="el"><dd class="mdescRight">Used to call by name. <br/></dl><li><a class="anchor" id="a1e9c8d8797dde2e2c4eaa0b29458bf1a"></a><!-- doxytag: member="boost::rpc::message::params" ref="a1e9c8d8797dde2e2c4eaa0b29458bf1a" args="" -->
+optional&lt; std::string &gt; <a class="el" href="structboost_1_1rpc_1_1message.html#a1e9c8d8797dde2e2c4eaa0b29458bf1a">params</a>
+<dl class="el"><dd class="mdescRight">JSON Param Array. <br/></dl><li><a class="anchor" id="a44814fa0531df7d9b96a975819f07cc0"></a><!-- doxytag: member="boost::rpc::message::result" ref="a44814fa0531df7d9b96a975819f07cc0" args="" -->
+optional&lt; std::string &gt; <a class="el" href="structboost_1_1rpc_1_1message.html#a44814fa0531df7d9b96a975819f07cc0">result</a>
+<dl class="el"><dd class="mdescRight">Return value. <br/></dl><li><a class="anchor" id="a86b5cebff581feb3d913d4f89d43087f"></a><!-- doxytag: member="boost::rpc::message::error" ref="a86b5cebff581feb3d913d4f89d43087f" args="" -->
+optional&lt; <a class="el" href="structboost_1_1rpc_1_1error__object.html">error_object</a> &gt; <a class="el" href="structboost_1_1rpc_1_1message.html#a86b5cebff581feb3d913d4f89d43087f">error</a>
+<dl class="el"><dd class="mdescRight">Used in case of errors. <br/></dl></ul>
 <hr/><a name="_details"></a><h2>Detailed Description</h2>
 <p>This RPC message class is designed to work with the JSON-RPC 2.0 Specification, but should also serve well for Google Protocol Buffer spec. </p>
 <hr/>The documentation for this struct was generated from the following file:<ul>
@@ -96,7 +92,7 @@ optional&lt; <a class="el" href="structboost_1_1rpc_1_1error__object.html">error
 </iframe>
 </div>
 
-<hr class="footer"/><address style="text-align: right;"><small>Generated on Sat Jul 23 09:59:33 2011 for Boost.RPC by&nbsp;
+<hr class="footer"/><address style="text-align: right;"><small>Generated on Sat Jul 23 10:09:06 2011 for Boost.RPC by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.6.3 </small></address>
 </body>

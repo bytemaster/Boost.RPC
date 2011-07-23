@@ -63,35 +63,41 @@ Inheritance diagram for boost::rpc::json::connection:</div>
 </div>
 
 <p><a href="classboost_1_1rpc_1_1json_1_1connection-members.html">List of all members.</a></p>
-<table border="0" cellpadding="0" cellspacing="0">
-<tr><td colspan="2"><h2>Public Types</h2></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a71e526aa1fc062dc1dd87bbebaa42358"></a><!-- doxytag: member="boost::rpc::json::connection::ptr" ref="a71e526aa1fc062dc1dd87bbebaa42358" args="" -->
+<h2>Public Types</h2>
+<ul>
+<li><a class="anchor" id="a71e526aa1fc062dc1dd87bbebaa42358"></a><!-- doxytag: member="boost::rpc::json::connection::ptr" ref="a71e526aa1fc062dc1dd87bbebaa42358" args="" -->
 typedef <br class="typebreak"/>
 boost::cmt::retainable_ptr<br class="typebreak"/>
-&lt; <a class="el" href="classboost_1_1rpc_1_1json_1_1connection.html">connection</a> &gt;&nbsp;</td><td class="memItemRight" valign="bottom"><b>ptr</b></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a2309091144707c240f6a93c356cb6a9c"></a><!-- doxytag: member="boost::rpc::json::connection::handler" ref="a2309091144707c240f6a93c356cb6a9c" args="" -->
+&lt; <a class="el" href="classboost_1_1rpc_1_1json_1_1connection.html">connection</a> &gt; <b>ptr</b>
+<li><a class="anchor" id="a2309091144707c240f6a93c356cb6a9c"></a><!-- doxytag: member="boost::rpc::json::connection::handler" ref="a2309091144707c240f6a93c356cb6a9c" args="" -->
 typedef boost::function&lt; void(const <br class="typebreak"/>
-js::Value &amp;, js::Value &amp;)&gt;&nbsp;</td><td class="memItemRight" valign="bottom"><b>handler</b></td></tr>
-<tr><td colspan="2"><h2>Public Member Functions</h2></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="af1f9183025970cf942df3a756fc4854b"></a><!-- doxytag: member="boost::rpc::json::connection::add_signal_connection" ref="af1f9183025970cf942df3a756fc4854b" args="(const std::string &amp;name, const boost::signals::connection &amp;c)" -->
-void&nbsp;</td><td class="memItemRight" valign="bottom"><b>add_signal_connection</b> (const std::string &amp;name, const boost::signals::connection &amp;c)</td></tr>
-<tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ac26a4d7e42400fa9c865ccda89839305"></a><!-- doxytag: member="boost::rpc::json::connection::add_method_handler" ref="ac26a4d7e42400fa9c865ccda89839305" args="(const std::string &amp;name, const handler &amp;h)" -->
-void&nbsp;</td><td class="memItemRight" valign="bottom"><b>add_method_handler</b> (const std::string &amp;name, const handler &amp;h)</td></tr>
-<tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a21f2f1ad78ba0d9e2107c130e1ec7e82"></a><!-- doxytag: member="boost::rpc::json::connection::invoke" ref="a21f2f1ad78ba0d9e2107c130e1ec7e82" args="(js::Value &amp;msg, js::Value &amp;rtn_msg, uint64_t timeout_us=&#45;1)" -->
-void&nbsp;</td><td class="memItemRight" valign="bottom"><b>invoke</b> (js::Value &amp;msg, js::Value &amp;rtn_msg, uint64_t timeout_us=-1)</td></tr>
-<tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ab2b2850fbe2de3fee1f573993bff8b25"></a><!-- doxytag: member="boost::rpc::json::connection::send" ref="ab2b2850fbe2de3fee1f573993bff8b25" args="(const js::Value &amp;v)=0" -->
-virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><b>send</b> (const js::Value &amp;v)=0</td></tr>
-<tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aedca31fd4a9c0f75c7473034d4c60682"></a><!-- doxytag: member="boost::rpc::json::connection::start" ref="aedca31fd4a9c0f75c7473034d4c60682" args="()=0" -->
-virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><b>start</b> ()=0</td></tr>
-<tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a1eaaab006fc617ce31ae2f9e49bad5d0"></a><!-- doxytag: member="boost::rpc::json::connection::is_connected" ref="a1eaaab006fc617ce31ae2f9e49bad5d0" args="() const =0" -->
-virtual bool&nbsp;</td><td class="memItemRight" valign="bottom"><b>is_connected</b> () const =0</td></tr>
-<tr><td colspan="2"><h2>Public Attributes</h2></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ad4462bc6edce5532f8239c4a07b5927c"></a><!-- doxytag: member="boost::rpc::json::connection::disconnected" ref="ad4462bc6edce5532f8239c4a07b5927c" args="" -->
-boost::signal&lt; void()&gt;&nbsp;</td><td class="memItemRight" valign="bottom"><b>disconnected</b></td></tr>
-<tr><td colspan="2"><h2>Protected Member Functions</h2></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a94ef279dec61b1419ecc3c49a3fa36d2"></a><!-- doxytag: member="boost::rpc::json::connection::on_receive" ref="a94ef279dec61b1419ecc3c49a3fa36d2" args="(const js::Value &amp;v)" -->
-void&nbsp;</td><td class="memItemRight" valign="bottom"><b>on_receive</b> (const js::Value &amp;v)</td></tr>
-</table>
+js::Value &amp;, js::Value &amp;)&gt; <b>handler</b>
+</ul>
+<h2>Public Member Functions</h2>
+<ul>
+<li><a class="anchor" id="af1f9183025970cf942df3a756fc4854b"></a><!-- doxytag: member="boost::rpc::json::connection::add_signal_connection" ref="af1f9183025970cf942df3a756fc4854b" args="(const std::string &amp;name, const boost::signals::connection &amp;c)" -->
+void <b>add_signal_connection</b> (const std::string &amp;name, const boost::signals::connection &amp;c)
+<li><a class="anchor" id="ac26a4d7e42400fa9c865ccda89839305"></a><!-- doxytag: member="boost::rpc::json::connection::add_method_handler" ref="ac26a4d7e42400fa9c865ccda89839305" args="(const std::string &amp;name, const handler &amp;h)" -->
+void <b>add_method_handler</b> (const std::string &amp;name, const handler &amp;h)
+<li><a class="anchor" id="a21f2f1ad78ba0d9e2107c130e1ec7e82"></a><!-- doxytag: member="boost::rpc::json::connection::invoke" ref="a21f2f1ad78ba0d9e2107c130e1ec7e82" args="(js::Value &amp;msg, js::Value &amp;rtn_msg, uint64_t timeout_us=&#45;1)" -->
+void <b>invoke</b> (js::Value &amp;msg, js::Value &amp;rtn_msg, uint64_t timeout_us=-1)
+<li><a class="anchor" id="ab2b2850fbe2de3fee1f573993bff8b25"></a><!-- doxytag: member="boost::rpc::json::connection::send" ref="ab2b2850fbe2de3fee1f573993bff8b25" args="(const js::Value &amp;v)=0" -->
+virtual void <b>send</b> (const js::Value &amp;v)=0
+<li><a class="anchor" id="aedca31fd4a9c0f75c7473034d4c60682"></a><!-- doxytag: member="boost::rpc::json::connection::start" ref="aedca31fd4a9c0f75c7473034d4c60682" args="()=0" -->
+virtual void <b>start</b> ()=0
+<li><a class="anchor" id="a1eaaab006fc617ce31ae2f9e49bad5d0"></a><!-- doxytag: member="boost::rpc::json::connection::is_connected" ref="a1eaaab006fc617ce31ae2f9e49bad5d0" args="() const =0" -->
+virtual bool <b>is_connected</b> () const =0
+</ul>
+<h2>Public Attributes</h2>
+<ul>
+<li><a class="anchor" id="ad4462bc6edce5532f8239c4a07b5927c"></a><!-- doxytag: member="boost::rpc::json::connection::disconnected" ref="ad4462bc6edce5532f8239c4a07b5927c" args="" -->
+boost::signal&lt; void()&gt; <b>disconnected</b>
+</ul>
+<h2>Protected Member Functions</h2>
+<ul>
+<li><a class="anchor" id="a94ef279dec61b1419ecc3c49a3fa36d2"></a><!-- doxytag: member="boost::rpc::json::connection::on_receive" ref="a94ef279dec61b1419ecc3c49a3fa36d2" args="(const js::Value &amp;v)" -->
+void <b>on_receive</b> (const js::Value &amp;v)
+</ul>
 <hr/><a name="_details"></a><h2>Detailed Description</h2>
 <p>JSON-RPC connection interface. </p>
 <p>This class serves as the base class for various transports such as TCP, UDP, etc and provides a common interface as well as default implementation of common state-handling logic such as waiting for return values and managing signal connections. </p>
@@ -114,7 +120,7 @@ void&nbsp;</td><td class="memItemRight" valign="bottom"><b>on_receive</b> (const
 </iframe>
 </div>
 
-<hr class="footer"/><address style="text-align: right;"><small>Generated on Sat Jul 23 09:59:33 2011 for Boost.RPC by&nbsp;
+<hr class="footer"/><address style="text-align: right;"><small>Generated on Sat Jul 23 10:09:06 2011 for Boost.RPC by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.6.3 </small></address>
 </body>
