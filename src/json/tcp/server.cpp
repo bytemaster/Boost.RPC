@@ -3,7 +3,7 @@
 
 namespace boost { namespace rpc { namespace json { namespace tcp {
     typedef boost::cmt::asio::tcp::socket socket_t;
-    typedef boost::function<void(const connection::ptr&)> handler;
+    typedef boost::function<void(const json::tcp::connection::ptr&)> handler;
 
     namespace detail {
         void listen( uint16_t port, const handler& handle ) {
@@ -16,7 +16,8 @@ namespace boost { namespace rpc { namespace json { namespace tcp {
                   socket_t::ptr iosp(new socket_t());
                   ec = boost::cmt::asio::tcp::accept( acc, *iosp);
                   if(!ec) {
-                      boost::cmt::async( boost::bind(handle, connection::ptr( new connection(iosp) ) )); 
+                      boost::cmt::async( boost::bind(handle, 
+                                         json::tcp::connection::ptr( new json::tcp::connection(iosp) ) )); 
                   }
               }while( !ec );
               boost::cmt::async(boost::bind(handle,connection::ptr()));
@@ -25,7 +26,12 @@ namespace boost { namespace rpc { namespace json { namespace tcp {
             }
         }
     }
-
+    
+    /**
+     *  @brief listens on port and calls handle any time a new json::tcp::connection is made.
+     *
+     *  If an error occurs then handler will be called with a null connection pointer.
+     */
     void listen( uint16_t port, const handler& handle ) {
         boost::cmt::async( boost::bind( &boost::rpc::json::tcp::detail::listen, port, handle ) );
     }
