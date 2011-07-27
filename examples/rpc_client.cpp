@@ -55,6 +55,7 @@ void amain(int argc, char**argv ) {
         }
         boost::rpc::json::client<Calculator> calc(con);
         reflect::any_ptr<Calculator> s = calc;
+  //      reflect::any_ptr<Calculator> s = calc.get_any_ptr();
 
         s->got_result.connect(&print_result);
         s->get_num.connect( &my_num );

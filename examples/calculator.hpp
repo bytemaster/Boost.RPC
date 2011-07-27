@@ -22,7 +22,7 @@ struct Calculator : Service
     boost::signal<float(double)>  get_num;
 };
 
-BOOST_REFLECT_ANY( Service, BOOST_PP_SEQ_NIL, (name)(exit) )
-BOOST_REFLECT_ANY( Calculator, (Service), (add)(add2)(sub)(mult)(div)(result)(got_result)(count)(get_num) )
+BOOST_REFLECT_ANY( Service, (name)(exit) )
+BOOST_REFLECT_ANY_DERIVED( Calculator, (Service), (add)(add2)(sub)(mult)(div)(result)(got_result)(count)(get_num) )
 
 #endif // _BOOST_REFLECT_CALCULATOR_HPP

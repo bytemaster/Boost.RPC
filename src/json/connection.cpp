@@ -8,10 +8,10 @@ namespace boost { namespace rpc { namespace json {
 
   using boost::reflect::void_t;
 
-  typedef boost::function<void(const js::Value&, js::Value&)> json_method;
+  typedef boost::function<void(const boost::json::Value&, boost::json::Value&)> json_method;
   typedef std::map<std::string,json_method >                  method_map;
   typedef std::map<std::string,boost::signals::connection >   signal_map;
-  typedef std::map<int,boost::cmt::promise<js::Value>* >      pending_req_map;
+  typedef std::map<int,boost::cmt::promise<boost::json::Value>* >      pending_req_map;
   typedef boost::fusion::vector<std::string,int>              connect_signal_params;
   typedef boost::function<void_t(connect_signal_params)>      connect_signal_functor;
 
@@ -57,11 +57,11 @@ namespace boost { namespace rpc { namespace json {
     my->methods[name] = h;
   }
 
-  void connection::invoke( js::Value& msg, js::Value& rtn_msg, uint64_t timeout_us ) {
+  void connection::invoke( boost::json::Value& msg, boost::json::Value& rtn_msg, uint64_t timeout_us ) {
     int id = ++my->next_id;
     msg.get_obj()[0].value_ = id;
 
-    boost::cmt::stack_retainable<boost::cmt::promise<js::Value> > p;
+    boost::cmt::stack_retainable<boost::cmt::promise<boost::json::Value> > p;
     my->pending_req[id] = &p;
 
     send( msg );
@@ -73,10 +73,10 @@ namespace boost { namespace rpc { namespace json {
     }
   }
   
-  void connection::on_receive( const js::Value& v ) {
+  void connection::on_receive( const boost::json::Value& v ) {
      if( v.contains( "method" ) ) {
        std::string       name  = v["method"].get_str();
-       js::Value result = js::Object();
+       boost::json::Value result = boost::json::Object();
        result["id"]     = v["id"];
        try {
          method_map::const_iterator itr = my->methods.find(name);

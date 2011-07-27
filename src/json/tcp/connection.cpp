@@ -18,7 +18,7 @@ namespace boost { namespace rpc { namespace json { namespace tcp {
         return true;
     }
 
-    void connection::send( const js::Value& v ) {
+    void connection::send( const boost::json::Value& v ) {
        std::stringstream ss;
        std::cerr<<"send:";
        boost::json::write(v,std::cerr, boost::json::remove_trailing_zeros);
@@ -34,7 +34,7 @@ namespace boost { namespace rpc { namespace json { namespace tcp {
     void connection::read_loop() {
         m_connected = true;
         try {
-            js::Value v;
+            boost::json::Value v;
             boost::cmt::asio::tcp::socket::iterator itr(m_sock.get());
             boost::cmt::asio::tcp::socket::iterator end;
             std::string buf;
@@ -58,7 +58,7 @@ namespace boost { namespace rpc { namespace json { namespace tcp {
                     std::cerr<<buf<<std::endl;
                     boost::cmt::async( boost::bind(&connection::on_receive, this, v) );
                     buf.resize(0);
-                    v = js::Value();
+                    v = boost::json::Value();
                 }
                 ++itr;
             }

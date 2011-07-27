@@ -11,8 +11,7 @@ namespace boost { namespace rpc { namespace json {
    * @brief Maps methods on InterfaceType to remote calls via a json::connection
    */
   template<typename InterfaceType>
-  class client : public boost::reflect::any_ptr<InterfaceType>
-  {
+  class client : public boost::reflect::any_ptr<InterfaceType> {
     public:
       typedef boost::shared_ptr<client>              ptr;
       typedef boost::reflect::any_ptr<InterfaceType> interface_type;
@@ -20,20 +19,19 @@ namespace boost { namespace rpc { namespace json {
       client( const connection::ptr& c) 
       :m_con(c) {
         c->start();
-        visitor vi(*c);
-        boost::reflect::reflector<InterfaceType>::visit( **this, vi );
+        boost::reflect::visit( *this, visitor( *this ) ); 
       }      
     private:
       struct visitor {
-        visitor( connection& c ):m_con(c){};
+        visitor( client& s ) :m_self(s){};
 
-        template<typename InterfaceName, typename M>
-        bool accept( M& m, const char* name ) {
-          detail::if_signal<M::is_signal>::set_delegate( m_con, m, name ); 
-          return true;
+        template<typename Member, typename VTable>
+        void operator()( Member VTable::* m, const char* name )const  {
+          detail::if_signal<Member::is_signal>::set_delegate( *m_self.m_con, (*m_self).*m, name ); 
         }
-        connection& m_con;
+        client& m_self;
       };
+
       connection::ptr m_con;
   };
 

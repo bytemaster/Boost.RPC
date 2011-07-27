@@ -12,29 +12,31 @@ namespace boost { namespace rpc { namespace json {
   template<typename InterfaceType>
   class server {
     public:
-      typedef boost::shared_ptr<server> ptr;
+      typedef boost::shared_ptr<server>              ptr;
+      typedef boost::reflect::any_ptr<InterfaceType> interface_type;
 
       template<typename T>
       server( T v, const json::connection::ptr& c )
       :m_interface(v),m_con(c) {
-        visitor vi(*c);
-        boost::reflect::reflector<InterfaceType>::visit( *m_interface, vi );
+        boost::reflect::visit( m_interface, visitor( *this ) ); 
         m_con->start();
       }
 
     private:
       struct visitor {
-        visitor( json::connection& c ):m_con(c){};
-        template<typename InterfaceName, typename M>
-        bool accept( M& m, const char* name ) {
-             m_con.add_method_handler( name, 
-                detail::rpc_recv_functor<typename M::fused_params, 
-                                 M&, M::is_signal>(m,m_con,name) );
+        visitor( server& s ):m_self(s){}
+
+        template<typename Member, typename VTable>
+        void operator()( Member VTable::* m, const char* name )const  {
+             m_self.m_con->add_method_handler( name, 
+                detail::rpc_recv_functor<typename Member::fused_params, 
+                                 Member&, Member::is_signal>((*m_self.m_interface).*m,*m_self.m_con,name) );
         }
-        connection& m_con;
+        server&         m_self;
       };
-      connection::ptr                        m_con;
-      boost::reflect::any_ptr<InterfaceType> m_interface; 
+
+      connection::ptr m_con;
+      interface_type  m_interface; 
   };
 
 } } } // boost::rpc::json
