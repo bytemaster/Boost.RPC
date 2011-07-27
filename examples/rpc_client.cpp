@@ -1,6 +1,6 @@
+#include <boost/cmt/thread.hpp>
 #include "calculator.hpp"
 #include "cli.hpp"
-#include <boost/cmt/thread.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/exception/diagnostic_information.hpp>
 #include <boost/date_time/posix_time/ptime.hpp>
@@ -58,7 +58,8 @@ void amain(int argc, char**argv ) {
   //      reflect::any_ptr<Calculator> s = calc.get_any_ptr();
 
         s->got_result.connect(&print_result);
-        s->get_num.connect( &my_num );
+        calc->got_result.connect(&print_result);
+  //      s->get_num.connect( &my_num );
 
         cli  m_cli(s);
 
@@ -67,7 +68,7 @@ void amain(int argc, char**argv ) {
         std::string args;
 
         boost::posix_time::ptime start = boost::posix_time::microsec_clock::universal_time();
-        /*
+
         double sum = 0;
         int i = 0;
         for( i = 0; i < 100; ++i ) {
@@ -76,7 +77,6 @@ void amain(int argc, char**argv ) {
         boost::posix_time::ptime end = boost::posix_time::microsec_clock::universal_time();
         uint64_t us = (end-start).total_microseconds();
         std::cerr << i << " add(5) took  " << us << "us   " << double(i) / (us/1000000.0) << "invoke/sec\n";
-        */
 
         boost::cmt::thread* getline_thread = boost::cmt::thread::create();
         while( true )

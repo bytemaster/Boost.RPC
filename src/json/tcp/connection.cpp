@@ -10,11 +10,25 @@ namespace boost { namespace rpc { namespace json { namespace tcp {
 
     bool connection::connect( const std::string& hostname, const std::string& port ) {
         m_sock = sock_ptr( new boost::cmt::asio::tcp::socket() );
-        boost::system::error_code ec= m_sock->connect( boost::cmt::asio::tcp::resolve( hostname, port ).front() );
+        typedef std::vector<boost::asio::ip::tcp::endpoint> epvec;
+
+        epvec eps = boost::cmt::asio::tcp::resolve( hostname, port );
+        epvec::iterator itr = eps.begin();
+        epvec::iterator end = eps.end();
+
+        boost::system::error_code ec;
+        do {
+            std::cerr<< *itr<<std::endl;
+            m_sock->close();
+            ec = m_sock->connect( *itr );
+            ++itr;
+        } while( ec && itr != end );
+
         if( ec ) {
             elog( "%1%", boost::system::system_error(ec).what() );
             return false;
         }
+       
         return true;
     }
 

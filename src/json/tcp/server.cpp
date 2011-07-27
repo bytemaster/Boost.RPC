@@ -18,6 +18,8 @@ namespace boost { namespace rpc { namespace json { namespace tcp {
                   if(!ec) {
                       boost::cmt::async( boost::bind(handle, 
                                          json::tcp::connection::ptr( new json::tcp::connection(iosp) ) )); 
+                  } else { 
+                      std::cerr<< boost::system::system_error(ec).what();
                   }
               }while( !ec );
               boost::cmt::async(boost::bind(handle,connection::ptr()));

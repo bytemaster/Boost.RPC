@@ -3,6 +3,7 @@
 #include <boost/reflect/mirror_interface.hpp>
 #include <boost/reflect/reflect.hpp>
 #include <boost/reflect/any_ptr.hpp>
+#include <boost/cmt/future.hpp>
 
 struct Service
 {

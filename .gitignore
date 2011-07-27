@@ -2,3 +2,5 @@
 /Makefile
 /CMakeFiles/
 /*.a
+/CMakeScripts/
+/dev.build/

@@ -2,3 +2,6 @@
 /*.swp
 /Makefile
 /CMakeFiles/
+/jsonv
+/rpcc
+/rpcs

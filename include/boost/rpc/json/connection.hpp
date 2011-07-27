@@ -1,5 +1,6 @@
 #ifndef _BOOST_RPC_JSON_CONNECTION_HPP_
 #define _BOOST_RPC_JSON_CONNECTION_HPP_
+#include <boost/cmt/future.hpp>
 #include <boost/rpc/json.hpp>
 #include <boost/cmt/retainable.hpp>
 #include <boost/function.hpp>
@@ -79,6 +80,42 @@ namespace boost { namespace rpc { namespace json {
       connection&          m_con;
       mutable boost::json::Value    m_msg;
     }; // rpc_send_functor
+    template<typename Seq,typename ResultType>
+    struct rpc_send_functor<Seq, boost::cmt::future<ResultType> > {
+      typedef ResultType result_type;
+
+      rpc_send_functor( connection& c, const char* name )
+      :m_con(c),m_msg(boost::json::Object()) 
+      {
+        boost::json::Object&  m_obj = m_msg.get_obj(); // obj stored in m_msg
+        m_obj.push_back( boost::json::Pair( "id", 0 ) );
+        m_obj.push_back( boost::json::Pair( "method", std::string(name) ) );
+        m_obj.push_back( boost::json::Pair( "params", boost::json::Array() ) );
+      }
+
+      ResultType operator()( const Seq& params ) const  {
+        boost::json::Object&  m_obj = m_msg.get_obj(); // obj stored in m_msg
+        pack( m_obj.back().value_, params );
+        boost::json::Value  rtn_msg;
+        m_con.invoke( m_msg, rtn_msg );
+        ResultType  ret_val;
+        if(rtn_msg.contains("error") ) {
+          error_object e;
+          unpack( rtn_msg["error"], e );
+          BOOST_THROW_EXCEPTION( e );
+        }
+        if( rtn_msg.contains( "result" ) )  {
+          unpack( rtn_msg["result"], ret_val );
+          return ret_val;
+        }
+        error_object e;
+        e.message = "invalid json RPC message, missing result or error";
+        BOOST_THROW_EXCEPTION( e );
+      }
+      connection&          m_con;
+      mutable boost::json::Value    m_msg;
+    }; // rpc_send_functor
+
 
     template<typename Seq, typename Functor, bool is_signal = false>
     struct rpc_recv_functor {
