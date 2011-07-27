@@ -1,0 +1,23 @@
+/**
+    @defgroup boost_rpc_organization Organization
+
+    Boost.RPC is designed to separate serialization, protocol, transport,
+    and interface.  So it should support JSON RPC over HTTP, TCP, SSL, UDP.  
+    It should also support Google Protocol Buffers over TCP, UDP, UDT, etc.
+
+    The order of abstraction is:
+
+    @dot
+        digraph example {
+            node [shape=record];
+            b[ label="boost::reflect::any_ptr<Interface>" ];
+            c[ label="boost::reflect::any_ptr<Interface>" ];
+            b -> c [ arrowhead="open", style="dashed" ];
+        }
+    @enddot
+
+    - boost::reflect::any_ptr
+      - \link boost::rpc::json::client json::client
+        - \link boost::rpc::json::connection json::connection
+          - \link #boost::rpc::json::tcp::connection json::tcp::connection
+*/

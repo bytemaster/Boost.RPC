@@ -1,0 +1,41 @@
+/**
+    @defgroup boost_rpc Boost.RPC
+*/
+
+/**
+    @defgroup boost_rpc_intro Introduction
+    @ingroup boost_rpc
+
+    The goal of this library is to enable seamless remote procedure
+    calls between C++ objects in different processes and machines 
+    using a varity different transports, protocols and serialization 
+    methods. 
+
+    What makes Boost.RPC unique from the many other RPC solutions?
+
+    - No code generation tools required.
+    - Client and server stubs mirror local class functionality.
+    - Not tied to a particular protocol or serialization techinque
+    - Leverage Boost.Reflect to provide automatic serialization,
+        and API discovery.
+    - Leverage Boost.CMT (Collaborative Multi-tasking) to provide 
+        asyncrhonous calls without blocking your thread.
+
+    The true power of Boost.RPC comes from how it interacts with
+    reflection and coroutines to make interaction as remote and
+    seemless as and transparent as working with local objects.  You
+    can even use boost::reflect::any<Interface> to entirely hide
+    the difference between local and remote objects from your algorithms
+
+    @section boost_rpc_index Table of Contents
+        
+        - @ref boost_rpc_intro
+        - @ref boost_rpc_quickstart
+        - @ref boost_rpc_organization
+        - @ref boost_rpc_json
+        - @ref boost_rpc_protocol_buffers
+        - @ref boost_rpc_install
+        - @ref boost_rpc_license
+        - @ref boost_rpc_reference
+
+*/

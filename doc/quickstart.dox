@@ -1,0 +1,50 @@
+/**
+    @defgroup boost_rpc_quickstart Quick Start 
+    @ingroup boost_rpc
+
+    An example is worth a thousand words.  We will start by creating a
+    simple echo service.  Defining the service is done entirely using
+    Boost.Reflect.
+
+    @section boost_rpc_json_client JSON-RPC Client
+    @code
+    // echo_service.hpp
+    struct echo_service {
+        std::string echo( const std::string& s );
+    };
+    BOOST_REFLECT_ANY( echo_service, BOOST_REFLECT_BASE, (echo) )
+    @endcode
+
+    After defining our service, we can simply create a json::client from
+    a json::tcp::connection.
+
+    @code
+    using namespace boost::rpc;
+
+    json::tcp::connection::ptr con( new json::tcp::connection() );
+    if( !con->connect( argv[1], argv[2] ) ) {
+        std::cerr<<"Error connecting to "<<argv[1]<<":"<<argv[2]<<"\n"; 
+        return;
+    }
+    json::client<echo_service> echo_client(con);
+    std::string result = echo_client->echo( "Hello World" );
+    @endcode
+
+    @section boost_rpc_json_server JSON-RPC Server
+    
+    Defining the server is even easier.
+    
+    @code
+    void create_session( const shared_ptr<echo_service>& es, const json::connection::ptr& con ) {
+        json::server<echo_service> serv( es, con );
+        boost::cmt::wait( con->disconnected );
+    }
+
+    shared_ptr<echo_service> es(new echo_service());
+    json::tcp::listen( port, boost::bind(create_session, es, _1) );
+    @endcode
+
+    Some things to note about the client and server are that they take a json::connection::ptr instead of
+    a json::tcp::connection::ptr which means that they will work with any transport that implements a class
+    derived from json::connection.
+*/

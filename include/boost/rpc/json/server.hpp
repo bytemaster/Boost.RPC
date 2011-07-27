@@ -6,32 +6,38 @@
 
 namespace boost { namespace rpc { namespace json {
 
-    template<typename InterfaceType>
-    class server {
-        public:
-            template<typename T>
-            server( T v, const connection::ptr& c )
-            :m_interface(v),m_con(c) {
-                visitor vi(*c);
-                boost::reflect::reflector<InterfaceType>::visit( *m_interface, vi );
-                m_con->start();
-            }
+  /**
+   * @brief Maps incoming remote calls to any object implementing InterfaceType
+   */
+  template<typename InterfaceType>
+  class server {
+    public:
+      typedef boost::shared_ptr<server>              ptr;
+      typedef boost::reflect::any_ptr<InterfaceType> interface_type;
 
-        private:
-            struct visitor {
-                visitor( connection& c ):m_con(c){};
-                template<typename InterfaceName, typename M>
-                bool accept( M& m, const char* name ) {
-                     slog( "add method %1%", name );
-                     m_con.add_method_handler( name, 
-                        detail::rpc_recv_functor<typename M::fused_params, 
-                                         M&, M::is_signal>(m,m_con,name) );
-                }
-                connection& m_con;
-            };
-            connection::ptr                        m_con;
-            boost::reflect::any_ptr<InterfaceType> m_interface; 
-    };
+      template<typename T>
+      server( T v, const json::connection::ptr& c )
+      :m_interface(v),m_con(c) {
+        boost::reflect::visit( m_interface, visitor( *this ) ); 
+        m_con->start();
+      }
+
+    private:
+      struct visitor {
+        visitor( server& s ):m_self(s){}
+
+        template<typename Member, typename VTable>
+        void operator()( Member VTable::* m, const char* name )const  {
+             m_self.m_con->add_method_handler( name, 
+                detail::rpc_recv_functor<typename Member::fused_params, 
+                                 Member&, Member::is_signal>((*m_self.m_interface).*m,*m_self.m_con,name) );
+        }
+        server&         m_self;
+      };
+
+      connection::ptr m_con;
+      interface_type  m_interface; 
+  };
 
 } } } // boost::rpc::json
 

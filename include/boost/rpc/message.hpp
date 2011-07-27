@@ -55,8 +55,8 @@ struct message
 
 } } // namespace boost::rpc
 
-BOOST_REFLECT( boost::rpc::error_object, BOOST_PP_SEQ_NIL, (code)(message)(data) )
-BOOST_REFLECT( boost::rpc::message, BOOST_PP_SEQ_NIL, (id)(method_id)(method)(params)(result)(error) )
+BOOST_REFLECT( boost::rpc::error_object, (code)(message)(data) )
+BOOST_REFLECT( boost::rpc::message, (id)(method_id)(method)(params)(result)(error) )
 
 #endif // __BOOST_RPC_MESSAGE_HPP_
 

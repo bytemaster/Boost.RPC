@@ -1,0 +1,14 @@
+/**
+    @mainpage
+
+    @section boost_rpc_index Table of Contents
+        
+        - @ref boost_rpc_intro
+        - @ref boost_rpc_quickstart
+        - @ref boost_rpc_organization
+        - @ref boost_rpc_json
+        - @ref boost_rpc_protocol_buffers
+        - @ref boost_rpc_install
+        - @ref boost_rpc_license
+        - @ref boost_rpc_reference
+*/

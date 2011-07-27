@@ -3,7 +3,10 @@
 
 namespace boost { namespace rpc { namespace json { namespace tcp {
     connection::connection( const connection::sock_ptr& p )
-    :m_sock(p) {}
+    :m_sock(p) {
+    }
+
+    bool connection::is_connected()const { return m_connected; }
 
     bool connection::connect( const std::string& hostname, const std::string& port ) {
         m_sock = sock_ptr( new boost::cmt::asio::tcp::socket() );
@@ -15,7 +18,7 @@ namespace boost { namespace rpc { namespace json { namespace tcp {
         return true;
     }
 
-    void connection::send( const js::Value& v ) {
+    void connection::send( const boost::json::Value& v ) {
        std::stringstream ss;
        std::cerr<<"send:";
        boost::json::write(v,std::cerr, boost::json::remove_trailing_zeros);
@@ -25,14 +28,13 @@ namespace boost { namespace rpc { namespace json { namespace tcp {
     }
     
     void connection::start() {
-        wlog("start read loop" );
         async( boost::bind( &connection::read_loop, this ) );
     }
 
     void connection::read_loop() {
-        wlog("" );
+        m_connected = true;
         try {
-            js::Value v;
+            boost::json::Value v;
             boost::cmt::asio::tcp::socket::iterator itr(m_sock.get());
             boost::cmt::asio::tcp::socket::iterator end;
             std::string buf;
@@ -56,7 +58,7 @@ namespace boost { namespace rpc { namespace json { namespace tcp {
                     std::cerr<<buf<<std::endl;
                     boost::cmt::async( boost::bind(&connection::on_receive, this, v) );
                     buf.resize(0);
-                    v = js::Value();
+                    v = boost::json::Value();
                 }
                 ++itr;
             }
@@ -64,6 +66,7 @@ namespace boost { namespace rpc { namespace json { namespace tcp {
             elog( "%1%", boost::diagnostic_information(e) );
             throw;
         }
-        wlog("exit read loop" );
+        m_connected = false;
+        disconnected();
     }
 } } } }  // boost::rpc::json::tcp
