@@ -149,7 +149,7 @@ namespace boost { namespace rpc { namespace json {
         struct pack_sequence {
              pack_sequence( js::Array& _a ):a(_a){}
 
-             mutable js::Array&    a;
+             js::Array&    a;
              
              template<typename T>
              void operator() ( const T& v )const {
@@ -160,7 +160,7 @@ namespace boost { namespace rpc { namespace json {
         struct unpack_sequence {
              unpack_sequence( js::Array::const_iterator& _a ):a(_a){}
 
-             mutable js::Array::const_iterator&  a;
+             js::Array::const_iterator&  a;
              
              template<typename T>
              void operator() ( T& v )const {
