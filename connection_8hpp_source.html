@@ -18,6 +18,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
   <div class="tabs">
     <ul>
       <li><a href="index.html"><span>Main&nbsp;Page</span></a></li>
+      <li><a href="modules.html"><span>Modules</span></a></li>
       <li><a href="annotated.html"><span>Classes</span></a></li>
       <li class="current"><a href="files.html"><span>Files</span></a></li>
       <li>
@@ -55,7 +56,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00020"></a><a class="code" href="classboost_1_1rpc_1_1json_1_1connection.html">00020</a>   <span class="keyword">class </span><a class="code" href="classboost_1_1rpc_1_1json_1_1connection.html" title="JSON-RPC connection interface.">connection</a> : <span class="keyword">public</span> boost::cmt::retainable {
 <a name="l00021"></a>00021     <span class="keyword">public</span>:
 <a name="l00022"></a>00022       <span class="keyword">typedef</span> boost::cmt::retainable_ptr&lt;connection&gt;              ptr;
-<a name="l00023"></a>00023       <span class="keyword">typedef</span> boost::function&lt;void(const js::Value&amp;, js::Value&amp;)&gt; handler;
+<a name="l00023"></a>00023       <span class="keyword">typedef</span> boost::function&lt;void(const boost::json::Value&amp;, boost::json::Value&amp;)&gt; handler;
 <a name="l00024"></a>00024   
 <a name="l00025"></a>00025       <a class="code" href="classboost_1_1rpc_1_1json_1_1connection.html" title="JSON-RPC connection interface.">connection</a>();
 <a name="l00026"></a>00026       <span class="keyword">virtual</span> ~<a class="code" href="classboost_1_1rpc_1_1json_1_1connection.html" title="JSON-RPC connection interface.">connection</a>();
@@ -63,15 +64,15 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00028"></a>00028       <span class="keywordtype">void</span> add_signal_connection( <span class="keyword">const</span> std::string&amp; name, 
 <a name="l00029"></a>00029                                   <span class="keyword">const</span> boost::signals::connection&amp; c );
 <a name="l00030"></a>00030       <span class="keywordtype">void</span> add_method_handler( <span class="keyword">const</span> std::string&amp; name, <span class="keyword">const</span> handler&amp; h ); 
-<a name="l00031"></a>00031       <span class="keywordtype">void</span> invoke( js::Value&amp; msg, js::Value&amp; rtn_msg, uint64_t timeout_us = -1 );
+<a name="l00031"></a>00031       <span class="keywordtype">void</span> invoke( boost::json::Value&amp; msg, boost::json::Value&amp; rtn_msg, uint64_t timeout_us = -1 );
 <a name="l00032"></a>00032 
-<a name="l00033"></a>00033       <span class="keyword">virtual</span> <span class="keywordtype">void</span> send( <span class="keyword">const</span> js::Value&amp; v )=0;
+<a name="l00033"></a>00033       <span class="keyword">virtual</span> <span class="keywordtype">void</span> send( <span class="keyword">const</span> boost::json::Value&amp; v )=0;
 <a name="l00034"></a>00034       <span class="keyword">virtual</span> <span class="keywordtype">void</span> start()=0;
 <a name="l00035"></a>00035       <span class="keyword">virtual</span> <span class="keywordtype">bool</span> is_connected()<span class="keyword">const</span> = 0;
 <a name="l00036"></a>00036 
 <a name="l00037"></a>00037       boost::signal&lt;void()&gt; disconnected;
 <a name="l00038"></a>00038     <span class="keyword">protected</span>:
-<a name="l00039"></a>00039       <span class="keywordtype">void</span> on_receive( <span class="keyword">const</span> js::Value&amp; v );
+<a name="l00039"></a>00039       <span class="keywordtype">void</span> on_receive( <span class="keyword">const</span> boost::json::Value&amp; v );
 <a name="l00040"></a>00040 
 <a name="l00041"></a>00041     <span class="keyword">private</span>:
 <a name="l00042"></a>00042       <span class="keyword">class </span>connection_private* my;
@@ -84,18 +85,18 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00049"></a>00049       <span class="keyword">typedef</span> ResultType result_type;
 <a name="l00050"></a>00050 
 <a name="l00051"></a>00051       rpc_send_functor( <a class="code" href="classboost_1_1rpc_1_1json_1_1connection.html" title="JSON-RPC connection interface.">connection</a>&amp; c, <span class="keyword">const</span> <span class="keywordtype">char</span>* name )
-<a name="l00052"></a>00052       :m_con(c),m_msg(js::Object()) 
+<a name="l00052"></a>00052       :m_con(c),m_msg(boost::json::Object()) 
 <a name="l00053"></a>00053       {
-<a name="l00054"></a>00054         js::Object&amp;  m_obj = m_msg.get_obj(); <span class="comment">// obj stored in m_msg</span>
-<a name="l00055"></a>00055         m_obj.push_back( js::Pair( <span class="stringliteral">&quot;id&quot;</span>, 0 ) );
-<a name="l00056"></a>00056         m_obj.push_back( js::Pair( <span class="stringliteral">&quot;method&quot;</span>, std::string(name) ) );
-<a name="l00057"></a>00057         m_obj.push_back( js::Pair( <span class="stringliteral">&quot;params&quot;</span>, js::Array() ) );
+<a name="l00054"></a>00054         boost::json::Object&amp;  m_obj = m_msg.get_obj(); <span class="comment">// obj stored in m_msg</span>
+<a name="l00055"></a>00055         m_obj.push_back( boost::json::Pair( <span class="stringliteral">&quot;id&quot;</span>, 0 ) );
+<a name="l00056"></a>00056         m_obj.push_back( boost::json::Pair( <span class="stringliteral">&quot;method&quot;</span>, std::string(name) ) );
+<a name="l00057"></a>00057         m_obj.push_back( boost::json::Pair( <span class="stringliteral">&quot;params&quot;</span>, boost::json::Array() ) );
 <a name="l00058"></a>00058       }
 <a name="l00059"></a>00059 
 <a name="l00060"></a>00060       ResultType operator()( <span class="keyword">const</span> Seq&amp; params )<span class="keyword"> const  </span>{
-<a name="l00061"></a>00061         js::Object&amp;  m_obj = m_msg.get_obj(); <span class="comment">// obj stored in m_msg</span>
+<a name="l00061"></a>00061         boost::json::Object&amp;  m_obj = m_msg.get_obj(); <span class="comment">// obj stored in m_msg</span>
 <a name="l00062"></a>00062         pack( m_obj.back().value_, params );
-<a name="l00063"></a>00063         js::Value  rtn_msg;
+<a name="l00063"></a>00063         boost::json::Value  rtn_msg;
 <a name="l00064"></a>00064         m_con.invoke( m_msg, rtn_msg );
 <a name="l00065"></a>00065         ResultType  ret_val;
 <a name="l00066"></a>00066         <span class="keywordflow">if</span>(rtn_msg.contains(<span class="stringliteral">&quot;error&quot;</span>) ) {
@@ -112,14 +113,14 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00077"></a>00077         BOOST_THROW_EXCEPTION( e );
 <a name="l00078"></a>00078       }
 <a name="l00079"></a>00079       connection&amp;          m_con;
-<a name="l00080"></a>00080       <span class="keyword">mutable</span> js::Value    m_msg;
+<a name="l00080"></a>00080       <span class="keyword">mutable</span> boost::json::Value    m_msg;
 <a name="l00081"></a>00081     }; <span class="comment">// rpc_send_functor</span>
 <a name="l00082"></a>00082 
 <a name="l00083"></a>00083     <span class="keyword">template</span>&lt;<span class="keyword">typename</span> Seq, <span class="keyword">typename</span> Functor, <span class="keywordtype">bool</span> is_signal = false&gt;
 <a name="l00084"></a>00084     <span class="keyword">struct </span>rpc_recv_functor {
 <a name="l00085"></a>00085       rpc_recv_functor( Functor f, connection&amp;, <span class="keyword">const</span> <span class="keywordtype">char</span>* )
 <a name="l00086"></a>00086       :m_func(f){}
-<a name="l00087"></a>00087       <span class="keywordtype">void</span> operator()( <span class="keyword">const</span> js::Value&amp; params, js::Value&amp; rtn ) {
+<a name="l00087"></a>00087       <span class="keywordtype">void</span> operator()( <span class="keyword">const</span> boost::json::Value&amp; params, boost::json::Value&amp; rtn ) {
 <a name="l00088"></a>00088         Seq paramv;
 <a name="l00089"></a>00089         unpack( params, paramv );
 <a name="l00090"></a>00090         pack( rtn, m_func(paramv) );
@@ -160,7 +161,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00125"></a>00125         c.add_signal_connection( name, m_sig_con );
 <a name="l00126"></a>00126       }
 <a name="l00127"></a>00127 
-<a name="l00128"></a>00128       <span class="keywordtype">void</span> operator()( <span class="keyword">const</span> js::Value&amp; params, js::Value&amp; rtn ) {
+<a name="l00128"></a>00128       <span class="keywordtype">void</span> operator()( <span class="keyword">const</span> boost::json::Value&amp; params, boost::json::Value&amp; rtn ) {
 <a name="l00129"></a>00129         scoped_block_signal block_reverse(m_sig_con);
 <a name="l00130"></a>00130         Seq paramv;
 <a name="l00131"></a>00131         unpack( params, paramv );
@@ -229,7 +230,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
      onmouseover="return searchBox.OnSearchSelectShow()"
      onmouseout="return searchBox.OnSearchSelectHide()"
      onkeydown="return searchBox.OnSearchSelectKey(event)">
-<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&nbsp;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&nbsp;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&nbsp;</span>Variables</a></div>
+<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&nbsp;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&nbsp;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&nbsp;</span>Files</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&nbsp;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&nbsp;</span>Variables</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&nbsp;</span>Typedefs</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(6)"><span class="SelectionMark">&nbsp;</span>Enumerations</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(7)"><span class="SelectionMark">&nbsp;</span>Friends</a></div>
 
 <!-- iframe showing the search results (closed by default) -->
 <div id="MSearchResultsWindow">
@@ -238,7 +239,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </iframe>
 </div>
 
-<hr class="footer"/><address style="text-align: right;"><small>Generated on Sat Jul 23 10:09:06 2011 for Boost.RPC by&nbsp;
+<hr class="footer"/><address style="text-align: right;"><small>Generated on Wed Jul 27 02:08:56 2011 for Boost.RPC by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.6.3 </small></address>
 </body>

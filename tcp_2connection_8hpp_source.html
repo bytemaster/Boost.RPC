@@ -18,6 +18,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
   <div class="tabs">
     <ul>
       <li><a href="index.html"><span>Main&nbsp;Page</span></a></li>
+      <li><a href="modules.html"><span>Modules</span></a></li>
       <li><a href="annotated.html"><span>Classes</span></a></li>
       <li class="current"><a href="files.html"><span>Files</span></a></li>
       <li>
@@ -60,12 +61,12 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00021"></a>00021             <span class="keywordtype">bool</span> connect( <span class="keyword">const</span> std::string&amp; hostname, <span class="keyword">const</span> std::string&amp; port );
 <a name="l00022"></a>00022             <span class="keywordtype">bool</span> is_connected()<span class="keyword">const</span>;
 <a name="l00023"></a>00023 
-<a name="l00024"></a>00024             <span class="keywordtype">void</span> send( <span class="keyword">const</span> js::Value&amp; v );
+<a name="l00024"></a>00024             <span class="keywordtype">void</span> send( <span class="keyword">const</span> boost::json::Value&amp; v );
 <a name="l00025"></a>00025             <span class="keywordtype">void</span> start();
 <a name="l00026"></a>00026 
 <a name="l00027"></a>00027         <span class="keyword">private</span>:
 <a name="l00028"></a>00028             <span class="keywordtype">void</span> read_loop();
-<a name="l00029"></a>00029             boost::function&lt;void(const js::Value&amp; v)&gt; m_recv_handler;
+<a name="l00029"></a>00029             boost::function&lt;void(const boost::json::Value&amp; v)&gt; m_recv_handler;
 <a name="l00030"></a>00030             sock_ptr                                  m_sock;
 <a name="l00031"></a>00031             <span class="keywordtype">bool</span>                                      m_connected;
 <a name="l00032"></a>00032     };
@@ -79,7 +80,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
      onmouseover="return searchBox.OnSearchSelectShow()"
      onmouseout="return searchBox.OnSearchSelectHide()"
      onkeydown="return searchBox.OnSearchSelectKey(event)">
-<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&nbsp;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&nbsp;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&nbsp;</span>Variables</a></div>
+<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&nbsp;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&nbsp;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&nbsp;</span>Files</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&nbsp;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&nbsp;</span>Variables</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&nbsp;</span>Typedefs</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(6)"><span class="SelectionMark">&nbsp;</span>Enumerations</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(7)"><span class="SelectionMark">&nbsp;</span>Friends</a></div>
 
 <!-- iframe showing the search results (closed by default) -->
 <div id="MSearchResultsWindow">
@@ -88,7 +89,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </iframe>
 </div>
 
-<hr class="footer"/><address style="text-align: right;"><small>Generated on Sat Jul 23 10:09:06 2011 for Boost.RPC by&nbsp;
+<hr class="footer"/><address style="text-align: right;"><small>Generated on Wed Jul 27 02:08:56 2011 for Boost.RPC by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.6.3 </small></address>
 </body>

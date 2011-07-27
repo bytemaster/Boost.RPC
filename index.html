@@ -18,6 +18,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
   <div class="tabs">
     <ul>
       <li class="current"><a href="index.html"><span>Main&nbsp;Page</span></a></li>
+      <li><a href="modules.html"><span>Modules</span></a></li>
       <li><a href="annotated.html"><span>Classes</span></a></li>
       <li><a href="files.html"><span>Files</span></a></li>
       <li>
@@ -37,54 +38,25 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
   </div>
 </div>
 <div class="contents">
-<h1>Boost.RPC Documentation</h1><h2><a class="anchor" id="boost_rpc_intro">
-Introduction</a></h2>
-<p>The goal of this library is to enable seamless remote procedure calls between C++ objects in different processes and machines using a varity different transports, protocols and serialization methods.</p>
-<p>What makes Boost.RPC unique from the many other RPC solutions?</p>
+<h1>Boost.RPC Documentation</h1><h2><a class="anchor" id="boost_rpc_index">
+Table of Contents</a></h2>
 <ul>
-<li>No code generation tools required.</li>
-<li>Client and server stubs mirror local class functionality.</li>
-<li>Not tied to a particular protocol or serialization techinque</li>
-<li>Leverage Boost.Reflect to provide automatic serialization, and API discovery.</li>
-<li>Leverage Boost.CMT (Collaborative Multi-tasking) to provide asyncrhonous calls without blocking your thread.</li>
+<li><a class="el" href="group__boost__rpc__intro.html">Introduction</a></li>
+<li><a class="el" href="group__boost__rpc__quickstart.html">Quick Start</a></li>
+<li><a class="el" href="group__boost__rpc__organization.html">Organization</a></li>
+<li>boost_rpc_json</li>
+<li>boost_rpc_protocol_buffers</li>
+<li>boost_rpc_install</li>
+<li>boost_rpc_license</li>
+<li>boost_rpc_reference </li>
 </ul>
-<p>The true power of Boost.RPC comes from how it interacts with reflection and coroutines to make interaction as remote and seemless as and transparent as working with local objects. You can even use boost::reflect::any&lt;Interface&gt; to entirely hide the difference between local and remote objects from your algorithms</p>
-<h2><a class="anchor" id="boost_json_rpc_client">
-JSON-RPC Client</a></h2>
-<p>An example is worth a thousand words. We will start by creating a simple echo service. Defining the service is done entirely using Boost.Reflect.</p>
-<div class="fragment"><pre class="fragment">    <span class="comment">// echo_service.hpp</span>
-    <span class="keyword">struct </span>echo_service {
-        std::string echo( <span class="keyword">const</span> std::string&amp; s );
-    };
-    BOOST_REFLECT_ANY( echo_service, BOOST_REFLECT_BASE, (echo) )
-</pre></div><p>After defining our service, we can simply create a json::client from a json::tcp::connection.</p>
-<div class="fragment"><pre class="fragment">    <span class="keyword">using namespace </span>boost::rpc;
-
-    json::tcp::connection::ptr con( <span class="keyword">new</span> json::tcp::connection() );
-    <span class="keywordflow">if</span>( !con-&gt;connect( argv[1], argv[2] ) ) {
-        std::cerr&lt;&lt;<span class="stringliteral">&quot;Error connecting to &quot;</span>&lt;&lt;argv[1]&lt;&lt;<span class="stringliteral">&quot;:&quot;</span>&lt;&lt;argv[2]&lt;&lt;<span class="stringliteral">&quot;\n&quot;</span>; 
-        <span class="keywordflow">return</span>;
-    }
-    json::client&lt;echo_service&gt; echo_client(con);
-    std::string result = echo_client-&gt;echo( <span class="stringliteral">&quot;Hello World&quot;</span> );
-</pre></div><h2><a class="anchor" id="boost_json_rpc_server">
-JSON-RPC Server</a></h2>
-<p>Defining the server is even easier.</p>
-<div class="fragment"><pre class="fragment">    <span class="keywordtype">void</span> create_session( <span class="keyword">const</span> shared_ptr&lt;echo_service&gt;&amp; es, <span class="keyword">const</span> json::connection::ptr&amp; con ) {
-        json::server&lt;echo_service&gt; serv( es, con );
-        boost::cmt::wait( con-&gt;disconnected );
-    }
-
-    shared_ptr&lt;echo_service&gt; es(<span class="keyword">new</span> echo_service());
-    json::tcp::listen( port, boost::bind(create_session, es, _1) );
-</pre></div><p>Some things to note about the client and server are that they take a json::connection::ptr instead of a json::tcp::connection::ptr which means that they will work with any transport that implements a class derived from json::connection. </p>
 </div>
 <!--- window showing the filter options -->
 <div id="MSearchSelectWindow"
      onmouseover="return searchBox.OnSearchSelectShow()"
      onmouseout="return searchBox.OnSearchSelectHide()"
      onkeydown="return searchBox.OnSearchSelectKey(event)">
-<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&nbsp;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&nbsp;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&nbsp;</span>Variables</a></div>
+<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&nbsp;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&nbsp;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&nbsp;</span>Files</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&nbsp;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&nbsp;</span>Variables</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&nbsp;</span>Typedefs</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(6)"><span class="SelectionMark">&nbsp;</span>Enumerations</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(7)"><span class="SelectionMark">&nbsp;</span>Friends</a></div>
 
 <!-- iframe showing the search results (closed by default) -->
 <div id="MSearchResultsWindow">
@@ -93,7 +65,7 @@ JSON-RPC Server</a></h2>
 </iframe>
 </div>
 
-<hr class="footer"/><address style="text-align: right;"><small>Generated on Sat Jul 23 10:09:06 2011 for Boost.RPC by&nbsp;
+<hr class="footer"/><address style="text-align: right;"><small>Generated on Wed Jul 27 02:08:56 2011 for Boost.RPC by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.6.3 </small></address>
 </body>

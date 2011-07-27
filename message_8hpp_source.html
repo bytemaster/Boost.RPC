@@ -18,6 +18,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
   <div class="tabs">
     <ul>
       <li><a href="index.html"><span>Main&nbsp;Page</span></a></li>
+      <li><a href="modules.html"><span>Modules</span></a></li>
       <li><a href="annotated.html"><span>Classes</span></a></li>
       <li class="current"><a href="files.html"><span>Files</span></a></li>
       <li>
@@ -42,7 +43,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
   </div>
 <h1>/Users/dlarimer/dev/libs/rpc/include/boost/rpc/message.hpp</h1><div class="fragment"><pre class="fragment"><a name="l00001"></a>00001 <span class="preprocessor">#ifndef __BOOST_RPC_MESSAGE_HPP_</span>
 <a name="l00002"></a>00002 <span class="preprocessor"></span><span class="preprocessor">#define __BOOST_RPC_MESSAGE_HPP_</span>
-<a name="l00003"></a>00003 <span class="preprocessor"></span><span class="preprocessor">#include &lt;boost/reflect/reflect.hpp&gt;</span>
+<a name="l00003"></a>00003 <span class="preprocessor"></span><span class="preprocessor">#include &lt;<a class="codeRef" doxygen="boost_reflect.tag:http://bytemaster.github.com/boost_reflect/" href="http://bytemaster.github.com/boost_reflect/reflect_8hpp.html">boost/reflect/reflect.hpp</a>&gt;</span>
 <a name="l00004"></a>00004 <span class="preprocessor">#include &lt;boost/rpc/varint.hpp&gt;</span>
 <a name="l00005"></a>00005 <span class="preprocessor">#include &lt;boost/rpc/required.hpp&gt;</span>
 <a name="l00006"></a>00006 <span class="preprocessor">#include &lt;boost/optional.hpp&gt;</span>
@@ -89,8 +90,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00055"></a>00055 
 <a name="l00056"></a>00056 } } <span class="comment">// namespace boost::rpc</span>
 <a name="l00057"></a>00057 
-<a name="l00058"></a>00058 BOOST_REFLECT( <a class="code" href="structboost_1_1rpc_1_1error__object.html">boost::rpc::error_object</a>, BOOST_PP_SEQ_NIL, (code)(message)(data) )
-<a name="l00059"></a>00059 BOOST_REFLECT( boost::rpc::message, BOOST_PP_SEQ_NIL, (<span class="keywordtype">id</span>)(method_id)(method)(params)(result)(error) )
+<a name="l00058"></a>00058 <a class="codeRef" doxygen="boost_reflect.tag:http://bytemaster.github.com/boost_reflect/" href="http://bytemaster.github.com/boost_reflect/old_8hpp.html#ac349b37ce6abc17c2c5e556a6368acb2">BOOST_REFLECT</a>( <a class="code" href="structboost_1_1rpc_1_1error__object.html">boost::rpc::error_object</a>, (code)(message)(data) )
+<a name="l00059"></a>00059 BOOST_REFLECT( boost::rpc::message, (<span class="keywordtype">id</span>)(method_id)(method)(params)(result)(error) )
 <a name="l00060"></a>00060 
 <a name="l00061"></a>00061 <span class="preprocessor">#endif // __BOOST_RPC_MESSAGE_HPP_</span>
 <a name="l00062"></a>00062 <span class="preprocessor"></span>
@@ -100,7 +101,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
      onmouseover="return searchBox.OnSearchSelectShow()"
      onmouseout="return searchBox.OnSearchSelectHide()"
      onkeydown="return searchBox.OnSearchSelectKey(event)">
-<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&nbsp;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&nbsp;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&nbsp;</span>Variables</a></div>
+<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&nbsp;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&nbsp;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&nbsp;</span>Files</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&nbsp;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&nbsp;</span>Variables</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&nbsp;</span>Typedefs</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(6)"><span class="SelectionMark">&nbsp;</span>Enumerations</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(7)"><span class="SelectionMark">&nbsp;</span>Friends</a></div>
 
 <!-- iframe showing the search results (closed by default) -->
 <div id="MSearchResultsWindow">
@@ -109,7 +110,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </iframe>
 </div>
 
-<hr class="footer"/><address style="text-align: right;"><small>Generated on Sat Jul 23 10:09:06 2011 for Boost.RPC by&nbsp;
+<hr class="footer"/><address style="text-align: right;"><small>Generated on Wed Jul 27 02:08:56 2011 for Boost.RPC by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.6.3 </small></address>
 </body>
