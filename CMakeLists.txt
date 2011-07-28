@@ -15,6 +15,8 @@ SET( sources
     src/json/tcp/server.cpp
              )
 
+install( DIRECTORY include/boost/rpc DESTINATION include/boost )
+
 SETUP_LIBRARY( boost_rpc SOURCES ${sources}
                          LIBRARIES  ${libraries}
                          LIBRARY_TYPE STATIC )
