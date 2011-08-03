@@ -104,7 +104,7 @@ struct datastream<size_t>
             return  true;
         }
         inline bool     valid()const      { return true;   }
-        inline bool     seekp(uint32_t p) { m_size = p;    }
+        inline bool     seekp(uint32_t p) { m_size = p;  return true;   }
         inline uint32_t tellp()const      { return m_size; }
         inline uint32_t remaining()const  { return 0;      }
     private:
