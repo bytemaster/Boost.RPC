@@ -33,7 +33,7 @@ void print_result( double r ) {
 }
 float my_num(double in) { return in / 3.1415; }
 
-std::string getline() {
+std::string cin_getline() {
     std::string s;
     std::getline( std::cin, s );
     return s;
@@ -82,7 +82,7 @@ void amain(int argc, char**argv ) {
         while( true )
         {
             std::cerr << "Enter Method: ";
-            line = getline_thread->sync<std::string>( getline );
+            line = getline_thread->sync<std::string>( cin_getline );
             cmd = line.substr( 0, line.find('(') );
             args = line.substr( cmd.size(), line.size() );
             try {
