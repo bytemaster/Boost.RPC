@@ -8,8 +8,12 @@ SET( libraries
     ${Boost_SYSTEM_LIBRARY} 
     ${Boost_SIGNALS_LIBRARY})
 
+add_executable( jsonv  jsonv.cpp  )
+target_link_libraries( jsonv ${libraries} )
+
 add_executable( rpcs  rpc_server.cpp  )
 target_link_libraries( rpcs ${libraries} )
+
 add_executable( rpcc  rpc_client.cpp  )
 target_link_libraries( rpcc ${libraries} )
 

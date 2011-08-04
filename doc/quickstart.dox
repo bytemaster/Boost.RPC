@@ -12,7 +12,7 @@
     struct echo_service {
         std::string echo( const std::string& s );
     };
-    BOOST_REFLECT_ANY( echo_service, BOOST_REFLECT_BASE, (echo) )
+    BOOST_REFLECT_ANY( echo_service, (echo) )
     @endcode
 
     After defining our service, we can simply create a json::client from
@@ -47,4 +47,56 @@
     Some things to note about the client and server are that they take a json::connection::ptr instead of
     a json::tcp::connection::ptr which means that they will work with any transport that implements a class
     derived from json::connection.
+
+
+    @section boost_rpc_json_cli Add Command Line Interface to JSON Client
+
+    The following example really pulls everything together.  It leverages the fact that boost::rpc::json::client<>
+    inherits boost::reflect::any_ptr<> and therefore can be used by the general-purpose command line interpreter 
+    class that will allow us to enter commands like:
+    @code
+        echo( hello_world ) 
+    @endcode
+
+    Have them parsed and then invoked via JSON RPC and then have the result handed back and printed to the screen.  
+
+    See Boost.Reflect's @ref boost_reflect_cli_example for more information.
+
+    @code
+    // Boost.CMT cannot block/wait from the main thread, so main simply kicks of
+    // cmt_main as a new Boost.Context that can wait.
+    void cmt_main( int argc, char** argv ) {
+        using namespace boost::rpc;
+
+        json::tcp::connection::ptr con( new json::tcp::connection() );
+        if( !con->connect( argv[1], argv[2] ) ) {
+            std::cerr<<"Error connecting to "<<argv[1]<<":"<<argv[2]<<"\n"; 
+            return;
+        }
+        json::client<echo_service> echo_client(con);
+        boost::reflect::any_ptr<echo_service> any_echo_service = echo_client;
+
+        cli  m_cli(any_echo_service);
+
+        boost::cmt::thread* getline_thread = boost::cmt::thread::create();
+        while( true ) {
+            std::cerr << "Enter Method: ";
+            line = getline_thread->sync<std::string>( getline );
+            cmd  = line.substr( 0, line.find('(') );
+            args = line.substr( cmd.size(), line.size() );
+            try {
+                std::cerr << m_cli[cmd](args) << std::endl;
+            } catch ( const std::exception& e ) {
+                std::cerr << e.what() << std::endl;
+            }
+        }
+
+    }
+    int main( int argc, char** argv ) {
+        boost::cmt::async( boost::bind( cmt_main, argc, argv ) );
+        return boost::cmt::exec();
+    }
+
+    @endcode
+
 */

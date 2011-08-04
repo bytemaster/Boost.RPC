@@ -12,6 +12,7 @@ SET( libraries boost_json )
 SET( sources 
     src/json/tcp/connection.cpp
     src/json/connection.cpp
+    src/json/value.cpp
     src/json/tcp/server.cpp
              )
 
