@@ -8,6 +8,10 @@ SET( libraries
     ${Boost_SYSTEM_LIBRARY} 
     ${Boost_SIGNALS_LIBRARY})
 
+IF(UNIX) 
+    set( libraries ${libraries} pthread )
+ENDIF(UNIX)
+
 add_executable( jsonv  jsonv.cpp  )
 target_link_libraries( jsonv ${libraries} )
 

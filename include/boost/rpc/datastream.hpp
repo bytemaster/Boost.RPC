@@ -52,7 +52,7 @@ struct datastream
             }
             return false;
         }
-        inline bool     putc(char c)      { 
+        inline bool     put(char c)      { 
             if( m_pos < m_end ) {
                 *m_pos = c; 
                 ++m_pos; 
@@ -60,8 +60,8 @@ struct datastream
             }
             return  false;
         }
-        inline bool     getc( unsigned char& c ) { return getc( *(char*)&c ); }
-        inline bool     getc( char& c ) {
+        inline bool     get( unsigned char& c ) { return get( *(char*)&c ); }
+        inline bool     get( char& c ) {
             if( m_pos < m_end ) {
                 c = *m_pos;
                 ++m_pos; 
@@ -99,12 +99,12 @@ struct datastream<size_t>
             m_size += s;
             return true;
         }
-        inline bool     putc(char c)      { 
+        inline bool     put(char c)      { 
             ++m_size;
             return  true;
         }
         inline bool     valid()const      { return true;   }
-        inline bool     seekp(uint32_t p) { m_size = p;    }
+        inline bool     seekp(uint32_t p) { m_size = p;  return true;   }
         inline uint32_t tellp()const      { return m_size; }
         inline uint32_t remaining()const  { return 0;      }
     private:

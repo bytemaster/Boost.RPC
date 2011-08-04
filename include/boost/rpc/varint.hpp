@@ -25,7 +25,7 @@ struct unsigned_int
            uint8_t b = uint8_t(v) & 0x7f;
            v >>= 7;
            b |= ((v > 0) << 7);
-           ds.putc(b);
+           ds.put(b);
         }while( v );
         return ds;
     }
@@ -37,7 +37,7 @@ struct unsigned_int
         char b = 0;
         uint8_t by = 0;
         do {
-            ds.getc(b);
+            ds.get(b);
             v |= uint32_t(uint8_t(b) & 0x7f) << by;
             by += 7;
         } while( uint8_t(b) & 0x80 );
@@ -66,7 +66,7 @@ struct signed_int
            uint8_t b = uint8_t(v) & 0x7f;
            v >>= 7;
            b |= ((v > 0) << 7);
-           ds.putc(b);
+           ds.put(b);
         }
         while( v );
         return ds;
@@ -79,7 +79,7 @@ struct signed_int
         char b = 0;
         int by = 0;
         do {
-            ds.getc(b);
+            ds.get(b);
             v |= uint32_t(uint8_t(b) & 0x7f) << by;
             by += 7;
         } while( uint8_t(b) & 0x80 );
