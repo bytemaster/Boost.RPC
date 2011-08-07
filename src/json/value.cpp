@@ -93,12 +93,17 @@ namespace boost { namespace rpc { namespace json {
 
  } // namespace detail
     
+ template<typename Iterator, typename Expr, typename Skip>
+ void parse( Iterator& itr, const Iterator& e, const Expr& g, const Skip& s, rpc::json::value& v ) {
+   phrase_parse(itr,e,g,s,v); 
+ }
  void read( const std::string& j, rpc::json::value& v ) {
     std::string::const_iterator iter = j.begin();
     std::string::const_iterator end = j.end();
     typedef boost::rpc::json::detail::json_grammar<std::string::const_iterator> gram;
     static gram g;
-    phrase_parse( iter, end, g, boost::spirit::ascii::space, v );
+    boost::rpc::json::parse( iter, end, g, boost::spirit::ascii::space, v );
+//    phrase_parse( iter, end, g, boost::spirit::ascii::space, v );
  }
 
 
