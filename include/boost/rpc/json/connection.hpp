@@ -29,7 +29,8 @@ namespace boost { namespace rpc { namespace json {
       void add_signal_connection( const std::string& name, 
                                   const boost::signals::connection& c );
       void add_method_handler( const std::string& name, const handler& h ); 
-      void invoke( boost::json::Value& msg, boost::json::Value& rtn_msg, uint64_t timeout_us = -1 );
+      void invoke( boost::json::Value& msg, boost::json::Value& rtn_msg, 
+                   const boost::chrono::microseconds& timeout_us = boost::chrono::microseconds::max() );
 
       virtual void send( const boost::json::Value& v )=0;
       virtual void start()=0;

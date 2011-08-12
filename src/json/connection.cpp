@@ -99,7 +99,7 @@ namespace boost { namespace rpc { namespace json {
     my->methods[name] = h;
   }
 
-  void connection::invoke( boost::json::Value& msg, boost::json::Value& rtn_msg, uint64_t timeout_us ) {
+  void connection::invoke( boost::json::Value& msg, boost::json::Value& rtn_msg, const boost::chrono::microseconds& timeout_us ) {
     int id = ++my->next_id;
     msg.get_obj()[0].value_ = id;
 
