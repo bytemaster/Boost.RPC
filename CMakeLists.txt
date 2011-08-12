@@ -6,7 +6,8 @@ include_directories( ../context/include )
 include_directories( ../move/include )
 include_directories( ../atomic/include )
 
-add_subdirectory( examples)
+add_subdirectory( examples )
+add_subdirectory( tests )
 
 SET( libraries boost_json boost_cmt )
 SET( sources 
