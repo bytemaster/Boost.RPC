@@ -107,8 +107,8 @@ namespace boost { namespace rpc { namespace json {
             boost::rpc::json::pack( obj[name], *v ); 
           }
         }
-        template<typename T>
-        inline void operator()( T (Class::*p), const char* name )const {
+        template<typename T,typename C, T(C::*p)>
+        inline void operator()( const char* name )const {
           pack_helper( c.*p, name );
         }
 
@@ -122,8 +122,8 @@ namespace boost { namespace rpc { namespace json {
         unpack_object_visitor(Class& _c, const boost::rpc::json::object& _val)
         :c(_c),obj(_val){}
 
-        template<typename T>
-        void operator()( T (Class::*p), const char* name )const {
+        template<typename T,typename C, T(C::*p)>
+        void operator()( const char* name )const {
            boost::rpc::json::unpack( obj[name], c.*p );
         }
         Class&                          c;

@@ -29,8 +29,9 @@ namespace boost { namespace rpc { namespace json {
       struct visitor {
         visitor( client& s ) :m_self(s){};
 
-        template<typename Member, typename VTable>
-        void operator()( Member VTable::* m, const char* name )const  {
+        template<typename Member, typename VTable, Member (VTable::*m)>
+        inline void operator()( const char* name )const  {
+          std::cerr<<"cname: " << name << std::endl;
           detail::if_signal<Member::is_signal>::set_delegate( *m_self.m_con, (*m_self).*m, name ); 
         }
         client& m_self;

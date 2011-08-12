@@ -26,8 +26,9 @@ namespace boost { namespace rpc { namespace json {
       struct visitor {
         visitor( server& s ):m_self(s){}
 
-        template<typename Member, typename VTable>
-        void operator()( Member VTable::* m, const char* name )const  {
+        template<typename Member, typename VTable, Member VTable::*m>
+        void operator()(const char* name )const  {
+             std::cerr<<"sname:"<<name<<std::endl;
              m_self.m_con->add_method_handler( name, 
                 detail::rpc_recv_functor<typename Member::fused_params, 
                                  Member&, Member::is_signal>((*m_self.m_interface).*m,*m_self.m_con,name) );

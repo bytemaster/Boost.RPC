@@ -9,11 +9,11 @@ namespace boost { namespace rpc { namespace json {
   using boost::reflect::void_t;
 
   typedef boost::function<void(const boost::json::Value&, boost::json::Value&)> json_method;
-  typedef std::map<std::string,json_method >                  method_map;
-  typedef std::map<std::string,boost::signals::connection >   signal_map;
-  typedef std::map<int,boost::cmt::promise<boost::json::Value>* >      pending_req_map;
-  typedef boost::fusion::vector<std::string,int>              connect_signal_params;
-  typedef boost::function<void_t(connect_signal_params)>      connect_signal_functor;
+  typedef std::map<std::string,json_method >                        method_map;
+  typedef std::map<std::string,boost::signals::connection >         signal_map;
+  typedef std::map<int,boost::cmt::promise<boost::json::Value>* >   pending_req_map;
+  typedef boost::fusion::vector<std::string,int>                    connect_signal_params;
+  typedef boost::function<void_t(const connect_signal_params&)>     connect_signal_functor;
 
 
   class connection_private {
@@ -27,6 +27,7 @@ namespace boost { namespace rpc { namespace json {
           std::string sig   = boost::fusion::at_c<0>(param);
           int         count = boost::fusion::at_c<1>(param);
 
+          wlog( "connection_private: %1%  sig %2%  ", this, sig );
           signal_map::iterator itr = signals.find(sig);
           if( itr != signals.end() ) {
               itr->second.block( count == 0 );
@@ -34,23 +35,64 @@ namespace boost { namespace rpc { namespace json {
           }
           error_object e;
           e.message = "Unknown signal '"+sig+"'";
-          BOOST_THROW_EXCEPTION( e );
+         // BOOST_THROW_EXCEPTION( e );
           return boost::reflect::void_t();
      }
   };
 
+    /*
+  struct my_functor {
+    my_functor(connection_private* cp):conp(cp){}
+    connection_private* conp;
+    void_t operator()( const connect_signal_params& p )const  {
+        return conp->rpc_connect_signal(p);
+    }
+  };
+  */
+  template<typename T>
+  void test( T t ) {
+    boost::function<void_t(const connect_signal_params&)> f = t;
+    f( connect_signal_params( "helloworld", 1 ) );
+    boost::function<void_t(const connect_signal_params&)> f2;
+    f2 = f;
+    f2( connect_signal_params( "helloworld", 2 ) );
+  }
   connection::connection() {
     my = new connection_private();
+    wlog( "this: %1% my %2%", this, my );
 
+    /*
     add_method_handler( "rpc_connect_signal", 
+        detail::rpc_recv_functor<connect_signal_params,my_functor,false> (
+                my_functor(my), 
+                *this, "rpc_connect_signal" ) );
+                */
+    add_method_handler( "rpc_connect_signal",
         detail::rpc_recv_functor<connect_signal_params,connect_signal_functor,false> (
                 boost::bind( &connection_private::rpc_connect_signal, my, _1 ), 
-                *this, "rpc_connect_signal" ) );
+                *this, "rpc_connect_signal" ) ); 
+
+
+    /*
+    add_method_handler( "rpc_connect_signal", 
+        detail::make_rpc_recv_functor<connect_signal_params,false>( 
+                boost::bind( &connection_private::rpc_connect_signal, my, _1 ), *this, "rpc_connect_signal" ) );
+                */
+
+
+//    test( boost::bind( &connection_private::rpc_connect_signal, my, _1 ) );
+//    f( connect_signal_params( "helloworld", 1 ) );
+
+                
   }
-  connection::~connection() { delete my; }
+  connection::~connection() { 
+    wlog( "delete %1%", my );
+    delete my; 
+  }
 
   void connection::add_signal_connection( const std::string& name, 
                                           const boost::signals::connection& c ) {
+    std::cerr<<this<<" my: "<<my<<" add signal con: " << name << std::endl;
     my->signals[name] = c;
   }
   void connection::add_method_handler( const std::string& name, const json_method& h ) {
@@ -80,6 +122,7 @@ namespace boost { namespace rpc { namespace json {
        result["id"]     = v["id"];
        try {
          method_map::const_iterator itr = my->methods.find(name);
+         wlog( "my %1%", my );
          if( itr != my->methods.end() ) {
            itr->second( v["params"], result["result"] );
          } else {

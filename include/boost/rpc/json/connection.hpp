@@ -18,7 +18,7 @@ namespace boost { namespace rpc { namespace json {
    *  provides a common interface as well as default implementation of common state-handling
    *  logic such as waiting for return values and managing signal connections.
    */
-  class connection : public boost::cmt::retainable {
+  class connection : public boost::cmt::retainable, boost::noncopyable {
     public:
       typedef boost::cmt::retainable_ptr<connection>              ptr;
       typedef boost::function<void(const boost::json::Value&, boost::json::Value&)> handler;
@@ -117,6 +117,7 @@ namespace boost { namespace rpc { namespace json {
     }; // rpc_send_functor
 
 
+
     template<typename Seq, typename Functor, bool is_signal = false>
     struct rpc_recv_functor {
       rpc_recv_functor( Functor f, connection&, const char* )
@@ -150,19 +151,21 @@ namespace boost { namespace rpc { namespace json {
         bool                        unblock;
         boost::signals::connection& c; 
     };
-
     template<typename Seq, typename Functor>
     struct rpc_recv_functor<Seq,Functor,true> {
       typedef typename boost::remove_reference<Functor>::type functor_type;
       rpc_recv_functor( Functor f, connection& c, const char* name )
       :m_name(name),m_con(c),m_func(f){
+        wlog( "rpc_recv_functor %1% %2%", this, name );
         m_sig_con = m_func.connect( rpc_send_functor<Seq,
                                     typename functor_type::result_type>( m_con, m_name ) );
         m_sig_con.block(); 
         c.add_signal_connection( name, m_sig_con );
       }
 
+
       void operator()( const boost::json::Value& params, boost::json::Value& rtn ) {
+        wlog( "rpc_recv_functor %1%", this );
         scoped_block_signal block_reverse(m_sig_con);
         Seq paramv;
         unpack( params, paramv );
@@ -175,6 +178,10 @@ namespace boost { namespace rpc { namespace json {
       Functor                    m_func;
     };
 
+    template<typename Seq, bool Sig, typename Functor>
+    inline rpc_recv_functor<Seq,Functor,Sig> make_rpc_recv_functor( Functor f, connection& c, const char* n ) {
+        return rpc_recv_functor<Seq,Functor,Sig>(f,c,n);
+    }
     using boost::reflect::void_t;
     typedef boost::fusion::vector<std::string,int>         connect_signal_params;
     typedef rpc_send_functor<connect_signal_params,void_t> rpc_connect_signal_base;
