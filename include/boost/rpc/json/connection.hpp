@@ -6,6 +6,7 @@
 #include <boost/function.hpp>
 #include <boost/signals.hpp>
 #include <boost/fusion/container/vector.hpp>
+#include <boost/chrono/chrono.hpp>
 #include <boost/fusion/functional/generation/make_unfused.hpp>
 #include <boost/bind.hpp>
 #include <boost/rpc/message.hpp>
