@@ -118,6 +118,7 @@ struct json_value_printer : boost::static_visitor<>
         os << (text ? "true" : "false");
     }
     void operator()(double const& text) const {
+        os.flags( std::ios::fixed );
         os << text;
     }
     void operator()(boost::rpc::json::null_t const& obj) const {

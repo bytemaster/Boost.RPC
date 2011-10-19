@@ -16,17 +16,22 @@
 #include <boost/fusion/algorithm.hpp>
 #include <boost/fusion/support/is_sequence.hpp>
 #include <boost/fusion/sequence/intrinsic/size.hpp>
+#include <boost/rpc/datastream.hpp>
 
 namespace boost { namespace rpc { namespace raw {
+
 
     template<typename Stream, typename T>
     inline void pack( Stream& s, const T& v );
     template<typename Stream, typename T>
     inline void unpack( Stream& s, T& v );
-    template<typename Stream, typename T, typename Alloc, template<typename,typename> class Container>
-    inline void pack( Stream& s, const Container<T,Alloc>& value );
-    template<typename Stream, typename T, typename Alloc, template<typename,typename> class Container>
-    inline void unpack( Stream& s, Container<T,Alloc>& value );
+
+    template<typename Stream, typename T, template<typename> class Alloc, template<typename,typename> class Container>
+    inline void pack( Stream& s, const Container<T,Alloc<T> >& value );
+    template<typename Stream, typename T, template<typename> class Alloc, template<typename,typename> class Container>
+    inline void unpack( Stream& s, Container<T,Alloc<T> >& value );
+
+
     template<typename Stream, typename Key, typename Value>
     void pack( Stream& s, const std::map<Key,Value>& value );
     template<typename Stream, typename Key, typename Value>
@@ -120,8 +125,9 @@ namespace boost { namespace rpc { namespace raw {
     void unpack( const Stream& s, required<T>& v ) {
       v = T(); unpack( s, *v );
     }
-    template<typename Stream, typename T, typename Alloc, template<typename,typename> class Container>
-    void unpack( const Stream& s, Container<T,Alloc>& value );
+    //template<typename Stream, typename T, template<typename> class Alloc, template<typename,typename> class Container>
+    //void unpack( const Stream& s, Container<T,Alloc<T> >& value );
+
     template<typename Stream, typename Key, typename Value>
     void unpack( const Stream& s, std::map<Key,Value>& value );
     template<typename Stream, typename Key, typename Value>
@@ -187,18 +193,39 @@ namespace boost { namespace rpc { namespace raw {
          Stream&  s;
       };
 
+      template<typename IsPod=boost::false_type>
+      struct if_pod{
+        template<typename Stream, typename T>
+        static inline void pack( Stream& s, const T& v ) { 
+          s << v;
+        }
+        template<typename Stream, typename T>
+        static inline void unpack( Stream& s, T& v ) { 
+          s >> v;
+        }
+      };
+
+      template<>
+      struct if_pod<boost::true_type> {
+        template<typename Stream, typename T>
+        static inline void pack( Stream& s, const T& v ) { 
+          s.write( (char*)&v, sizeof(v) );   
+        }
+        template<typename Stream, typename T>
+        static inline void unpack( Stream& s, T& v ) { 
+          s.read( (char*)&v, sizeof(v) );   
+        }
+      };
 
       template<typename IsReflected=boost::false_type>
       struct if_reflected {
         template<typename Stream, typename T>
         static inline void pack( Stream& s, const T& v ) { 
-          BOOST_STATIC_ASSERT( boost::is_pod<T>::value );
-          s.write( (char*)&v, sizeof(v) );   
+          if_pod<typename boost::is_pod<T>::type>::pack(s,v);
         }
         template<typename Stream, typename T>
         static inline void unpack( Stream& s, T& v ) { 
-          BOOST_STATIC_ASSERT( boost::is_pod<T>::value );
-          s.read( (char*)&v, sizeof(v) );   
+          if_pod<typename boost::is_pod<T>::type>::unpack(s,v);
         }
       };
       template<>
@@ -242,23 +269,23 @@ namespace boost { namespace rpc { namespace raw {
 
     
 
-    template<typename Stream, typename T, typename Alloc, template<typename,typename> class Container>
-    inline void pack( Stream& s, const Container<T,Alloc>& value ) {
+    template<typename Stream, typename T, template<typename> class Alloc, template<typename,typename> class Container>
+    inline void pack( Stream& s, const Container<T,Alloc<T> >& value ) {
       pack( s, unsigned_int(value.size()) );
-      typename Container<T,Alloc>::const_iterator itr = value.begin();
-      typename Container<T,Alloc>::const_iterator end = value.end();
+      typename Container<T,Alloc<T> >::const_iterator itr = value.begin();
+      typename Container<T,Alloc<T> >::const_iterator end = value.end();
       while( itr != end ) {
         boost::rpc::raw::pack( s, *itr );
         ++itr;
       }
     }
 
-    template<typename Stream, typename T, typename Alloc, template<typename,typename> class Container>
-    inline void unpack( Stream& s, Container<T,Alloc>& value ) {
+    template<typename Stream, typename T, template<typename> class Alloc, template<typename,typename> class Container>
+    inline void unpack( Stream& s, Container<T,Alloc<T> >& value ) {
       unsigned_int size; unpack( s, size );
       value.resize(size.value);
-      typename Container<T,Alloc>::iterator itr = value.begin();
-      typename Container<T,Alloc>::iterator end = value.end();
+      typename Container<T,Alloc<T> >::iterator itr = value.begin();
+      typename Container<T,Alloc<T> >::iterator end = value.end();
       while( itr != end ) {
         boost::rpc::raw::unpack( s, *itr );
         ++itr;
@@ -301,6 +328,7 @@ namespace boost { namespace rpc { namespace raw {
         boost::rpc::raw::unpack(s,value[k]);
       }
     }
+
     template<typename Stream, typename T> 
     inline void pack( Stream& s, const T& v ) {
       detail::if_fusion_seq< typename boost::fusion::traits::is_sequence<T>::type >::pack(s,v);
@@ -308,6 +336,41 @@ namespace boost { namespace rpc { namespace raw {
     template<typename Stream, typename T> 
     inline void unpack( Stream& s, T& v ) {
       detail::if_fusion_seq< typename boost::fusion::traits::is_sequence<T>::type >::unpack(s,v);
+    }
+
+
+
+
+
+    template<typename T>
+    inline void pack_vec( std::vector<char>& s, const T& v ) {
+      datastream<size_t> ps; 
+      raw::pack(ps,v );
+      s.resize(ps.tellp());
+      if( s.size() ) {
+        datastream<char*>  ds( &s.front(), s.size() ); 
+        raw::pack(ds,v);
+      }
+    }
+
+    template<typename T>
+    inline void unpack_vec( const std::vector<char>& s, T& v ) {
+      if( s.size() ) {
+        datastream<const char*>  ds( &s.front(), s.size() ); 
+        raw::unpack(ds,v);
+      }
+    }
+
+    template<typename T>
+    inline void pack( char* d, uint32_t s, const T& v ) {
+      datastream<char*> ds(d,s); 
+      raw::pack(ds,v );
+    }
+
+    template<typename T>
+    inline void unpack( const char* d, uint32_t s, T& v ) {
+      datastream<const char*>  ds( d, s );
+      raw::unpack(ds,v);
     }
     
 } } } // namespace boost::rpc::raw

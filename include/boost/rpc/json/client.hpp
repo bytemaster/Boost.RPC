@@ -11,7 +11,8 @@ namespace boost { namespace rpc { namespace json {
   /**
    * @brief Maps methods on InterfaceType to remote calls via a json::connection
    *
-   * The boost::rpc::json::client inherits the interface as @link boost::reflect::any_ptr boost::reflect::any_ptr<InterfaceType> @endlink
+   * The boost::rpc::json::client inherits the interface as 
+   * @link boost::reflect::any_ptr boost::reflect::any_ptr<InterfaceType> @endlink
    */
   template<typename InterfaceType>
   class client : public boost::reflect::any_ptr<InterfaceType, boost::rpc::mirror_interface> {
