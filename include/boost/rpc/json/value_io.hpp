@@ -344,6 +344,15 @@ namespace boost { namespace rpc { namespace json {
     }
 
     template<typename T>
+    std::string to_string( const T& v ) {
+        std::stringstream ss;
+        boost::rpc::json::value jsv; 
+        pack( jsv, v );
+        write(ss,jsv);
+        return ss.str();
+    }
+
+    template<typename T>
     struct to_json_helper {
         inline to_json_helper( const T& v):val(v){} 
         operator std::string()const;

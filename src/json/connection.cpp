@@ -2,7 +2,7 @@
 #include <map>
 #include <boost/cmt/thread.hpp>
 #include <boost/bind.hpp>
-    #include <boost/fusion/functional/generation/make_fused_function_object.hpp>
+#include <boost/fusion/functional/generation/make_fused_function_object.hpp>
 
 namespace boost { namespace rpc { namespace json {
 
