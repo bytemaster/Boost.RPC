@@ -2,6 +2,7 @@
 #include <boost/spirit/include/qi.hpp>
 #include <boost/fusion/include/adapt_struct.hpp>
 #include <boost/spirit/include/support_utree.hpp>
+#include <iomanip>
 
 BOOST_FUSION_ADAPT_STRUCT( boost::rpc::json::detail::key_val, (std::string,key)(boost::rpc::json::value,val) )
 BOOST_FUSION_ADAPT_STRUCT( boost::rpc::json::object, 
@@ -108,8 +109,7 @@ namespace boost { namespace rpc { namespace json {
 
 
 
-struct json_value_printer : boost::static_visitor<>
-{
+struct json_value_printer : boost::static_visitor<> {
     json_value_printer( std::ostream& _os ):os(_os){}
     void operator()(std::string const& text) const {
         os << "\"" << text << '"';
@@ -146,8 +146,60 @@ struct json_value_printer : boost::static_visitor<>
     std::ostream& os;
 };
 
-std::ostream& write(std::ostream& os, const boost::rpc::json::value& v ) {
-    boost::apply_visitor( json_value_printer(os), v.val );
+
+struct json_value_pretty_printer : boost::static_visitor<>
+{
+    json_value_pretty_printer( std::ostream& _os, int d= 1 ):os(_os),depth(d){}
+    void operator()(std::string const& text) const {
+        os << "\"" << text << '"';
+    }
+    void operator()(bool const& text) const {
+        os << (text ? "true" : "false");
+    }
+    void operator()(double const& text) const {
+        os.flags( std::ios::fixed );
+        os << text;
+    }
+    void operator()(boost::rpc::json::null_t const& obj) const {
+        os << "null";
+    }
+    void operator()(boost::rpc::json::object const& obj) const {
+        if( obj.keys.size() == 0 ){ os <<"{}"; return; }
+        os << "{\n";
+        for( uint32_t i = 0; i < obj.keys.size(); ++i ) {
+            os<<std::setw(depth*4)<<'"'<<obj.keys[i].key<<'"' << ":";
+            boost::apply_visitor( json_value_pretty_printer(os,depth+1), obj.keys[i].val.val);
+            if( i != obj.keys.size()-1 )  
+                os <<",";
+            os<<"\n";
+        }
+        os << std::setw(depth*4-4)<<"}";
+    }
+    void operator()(boost::rpc::json::array const& text) const {
+        if( text.vals.size() == 0 ) { os <<"[]"; return; }
+
+        os << "[\n";
+        for( uint32_t i = 0; i < text.vals.size(); ++i ) {
+            os << std::setw(depth*4)<<" ";
+            boost::apply_visitor( json_value_pretty_printer(os,depth+1), text.vals[i].val);
+            if( i != text.vals.size()-1 )  
+                os <<",";
+            os<<"\n";
+        }
+        os << std::setw(depth*4-4)<<"]";
+    }
+    int           depth;
+    std::ostream& os;
+};
+
+
+
+
+std::ostream& write(std::ostream& os, const boost::rpc::json::value& v, bool pretty  ) {
+    if( !pretty )
+        boost::apply_visitor( json_value_printer(os), v.val );
+    else
+        boost::apply_visitor( json_value_pretty_printer(os), v.val );
     return os;
 }
 

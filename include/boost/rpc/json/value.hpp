@@ -22,7 +22,8 @@ namespace boost { namespace rpc { namespace json {
 
     struct value {
        template<typename T>
-       value( const T& v = null_t() ) :val(v){}
+       value( const T& v ) :val(v){}
+       value( const std::string& v ):val( v ){}
        value( uint64_t v ):val( double(v) ){}
        value( int64_t v ):val( double(v) ){}
        value( char v ):val( double(v) ){}
@@ -74,6 +75,7 @@ namespace boost { namespace rpc { namespace json {
        void   resize( uint32_t size );
        void   clear();
 
+
        value_variant val;
     };
 
@@ -83,8 +85,8 @@ namespace boost { namespace rpc { namespace json {
     }
 
     void read( const std::string& j, value& v );
-    void write( const value& v, std::string& j );
-    std::ostream& write(std::ostream& os, const boost::rpc::json::value& v );
+    void write( const value& v, std::string& j, bool pretty = false );
+    std::ostream& write(std::ostream& os, const boost::rpc::json::value& v, bool pretty = false );
 
     namespace detail {
         struct key_val {
@@ -184,11 +186,11 @@ namespace boost { namespace rpc { namespace json {
 
     template<typename T>
     value::operator const T&()const {
-       return boost::get<T>(val);//boost::apply_visitor( detail::cast_visitor<T>(), val);
+       return boost::get<T>(val);
     }
     template<typename T>
     value::operator T&() {
-       return boost::get<T>(val);//boost::apply_visitor( detail::cast_visitor<T>(), val);
+       return boost::get<T>(val);
     }
 
 }}}

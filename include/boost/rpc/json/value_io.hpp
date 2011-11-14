@@ -48,6 +48,8 @@ namespace boost { namespace rpc { namespace json {
     void pack( boost::rpc::json::value& jsv, const required<T>& v );
     template<typename T, typename Alloc, template<typename,typename> class Container>
     void pack( boost::rpc::json::value& jsv, const Container<T,Alloc>& value );
+    template<typename T, class Compare, typename Alloc, template<typename,class,typename> class Container>
+    void pack( boost::rpc::json::value& jsv, const Container<T,Compare,Alloc>& value );
     template<typename Key, typename Value>
     void pack( boost::rpc::json::value& jsv, const std::map<Key,Value>& value );
     template<typename Key, typename Value>
@@ -81,6 +83,8 @@ namespace boost { namespace rpc { namespace json {
     void unpack( const boost::rpc::json::value& jsv, required<T>& v );
     template<typename T, typename Alloc, template<typename,typename> class Container>
     void unpack( const boost::rpc::json::value& jsv, Container<T,Alloc>& value );
+    template<typename T, class Compare, typename Alloc, template<typename,class,typename> class Container>
+    void unpack( const boost::rpc::json::value& jsv, Container<T,Compare,Alloc>& value );
     template<typename Key, typename Value>
     void unpack( const boost::rpc::json::value& jsv, std::map<Key,Value>& value );
     template<typename Key, typename Value>
@@ -169,6 +173,53 @@ namespace boost { namespace rpc { namespace json {
             boost::fusion::for_each( v, unpack_vector );
         }
       };
+
+      template<typename IsReflected=boost::false_type>
+      struct if_reflected {
+        template<typename T>
+        static inline void pack( boost::rpc::json::value& s, const T& v ) { 
+          std::stringstream ss; ss << v;
+          boost::rpc::json::pack(s,ss.str());
+        }
+        template<typename T>
+        static inline void unpack( boost::rpc::json::value& s, T& v ) { 
+          std::string str;
+          boost::rpc::json::unpack(s,str);
+          std::stringstream ss(str); 
+          ss >> v;
+        }
+      };
+      template<>
+      struct if_reflected<boost::true_type> {
+        template<typename T>
+        static inline void pack( boost::rpc::json::value& jsv, const T& v ) { 
+              jsv = boost::rpc::json::object();
+              detail::pack_object_visitor<T> pov(v,jsv);
+              boost::reflect::reflector<T>::visit(pov);
+        }
+        template<typename T>
+        static inline void unpack( boost::rpc::json::value& jsv, T& v ) { 
+              detail::unpack_object_visitor<T> pov(v,jsv );
+              boost::reflect::reflector<T>::visit(pov);
+        }
+      };
+
+      template<> struct if_fusion_seq<false> {
+          template<typename T> 
+          inline static void pack( boost::rpc::json::value& jsv, const T& v ) {
+              if_reflected<typename boost::reflect::reflector<T>::is_defined>::pack(jsv,v);
+          }
+          template<typename T> 
+          inline static void unpack( const boost::rpc::json::value& jsv, T& v ) {
+              if_reflected<typename boost::reflect::reflector<T>::is_defined>::unpack(jsv,v);
+          }
+      };
+
+
+
+
+      /*
+
       template<> struct if_fusion_seq<false> {
           template<typename T> 
           inline static void pack( boost::rpc::json::value& jsv, const T& v ) {
@@ -182,6 +233,7 @@ namespace boost { namespace rpc { namespace json {
               boost::reflect::reflector<T>::visit(pov);
           }
       };
+      */
     } // namesapce detail
 
     
@@ -242,6 +294,20 @@ namespace boost { namespace rpc { namespace json {
             ++i;
         }
     }
+    template<typename T, class Compare, typename Alloc, template<typename,class,typename> class Container>
+    inline void pack( boost::rpc::json::value& jsv, const Container<T,Compare,Alloc>& value ) {
+        jsv = boost::rpc::json::array();
+        boost::rpc::json::array& a = jsv;
+        a.resize(value.size());
+        typename Container<T,Compare,Alloc>::const_iterator itr = value.begin();
+        typename Container<T,Compare,Alloc>::const_iterator end = value.end();
+        uint32_t i = 0;
+        while( itr != end ) {
+            boost::rpc::json::pack( a[i], *itr );
+            ++itr;
+            ++i;
+        }
+    }
 
     template<typename T, typename Alloc, template<typename,typename> class Container>
     inline void unpack( const boost::rpc::json::value& jsv, Container<T,Alloc>& value ) {
@@ -249,6 +315,19 @@ namespace boost { namespace rpc { namespace json {
         value.resize( a.size() );
         typename Container<T,Alloc>::iterator itr = value.begin();
         typename Container<T,Alloc>::iterator end = value.end();
+        uint32_t i = 0;
+        while( itr != end ) {
+            boost::rpc::json::unpack( a[i], *itr );
+            ++itr;
+            ++i;
+        }
+    }
+    template<typename T, class Compare, typename Alloc, template<typename,class,typename> class Container>
+    inline void unpack( const boost::rpc::json::value& jsv, Container<T,Compare,Alloc>& value ) {
+        const boost::rpc::json::array& a = jsv;
+        value.resize( a.size() );
+        typename Container<T,Compare,Alloc>::iterator itr = value.begin();
+        typename Container<T,Compare,Alloc>::iterator end = value.end();
         uint32_t i = 0;
         while( itr != end ) {
             boost::rpc::json::unpack( a[i], *itr );
@@ -379,6 +458,17 @@ namespace boost { namespace rpc { namespace json {
         unpack( v, val );
     }
     
-} } } // namespace boost::rpc::json
+} // json 
+
+namespace raw {
+    template<typename Stream>
+    inline void pack( Stream& s, const std::string& v );
+
+    template<typename Stream> inline void pack( Stream& s, const json::value& v ) { 
+      std::stringstream ss; 
+      write( ss, v );
+      pack( s, ss.str() );
+   }
+} } } // namespace boost::rpc::raw
 
 #endif // BOOST_RPC_JSON_VALUE_IO_HPP
