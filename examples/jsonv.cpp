@@ -13,7 +13,18 @@ struct test {
 
 BOOST_REFLECT( test,(a)(b)(data)(data2)(keys)(bdata) )
 
+struct msg {
+ int id;
+ std::string method;
+};
+BOOST_REFLECT(msg,(id)(method))
+
 int main( int argc, char** argv ) {
+
+    msg m;
+    boost::rpc::json::from_json( " { \"id\":5.0, \"method\":  \"Hello\"}", m );
+    std::cout<< boost::rpc::json::to_json(m);
+
     test t;
     t.a = 5;
     t.b = "hello world";

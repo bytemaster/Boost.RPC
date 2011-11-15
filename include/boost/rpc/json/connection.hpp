@@ -10,6 +10,7 @@
 #include <boost/fusion/functional/generation/make_unfused.hpp>
 #include <boost/bind.hpp>
 #include <boost/rpc/message.hpp>
+#include <boost/fusion/support/deduce_sequence.hpp>
 
 namespace boost { namespace rpc { namespace json {
   /**
@@ -127,7 +128,8 @@ namespace boost { namespace rpc { namespace json {
       rpc_recv_functor( Functor f, connection&, const char* )
       :m_func(f){}
       void operator()( const boost::rpc::json::value& params, boost::rpc::json::value& rtn ) {
-        Seq paramv;
+        typedef typename boost::fusion::traits::deduce_sequence<Seq>::type param_type;
+        param_type paramv;
         unpack( params, paramv );
         pack( rtn, m_func(paramv) );
       }

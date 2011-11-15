@@ -1,6 +1,6 @@
+#include <boost/rpc/json/value_io.hpp>
 #include <boost/rpc/raw.hpp>
 #include <boost/rpc/describe.hpp>
-#include <boost/rpc/json/value_io.hpp>
 #include <boost/chrono.hpp>
 #include <boost/rpc/datastream.hpp>
 #include <boost/iostreams/device/null.hpp>
@@ -48,7 +48,7 @@ int main( int argc, char** argv ) {
     ss.seekp(0);
     boost::rpc::raw::pack(ss, t);
 
-    int64_t count = 10000000;
+    int64_t count = 100000;
     {
     boost::rpc::datastream<size_t> ds;
     boost::chrono::system_clock::time_point start = boost::chrono::system_clock::now();
@@ -57,9 +57,20 @@ int main( int argc, char** argv ) {
         boost::rpc::raw::pack(ds, t);
     }
     boost::chrono::system_clock::time_point end = boost::chrono::system_clock::now();
-    std::cerr<<"size: "<<ds.tellp()<<" time = "<<count / ((end-start).count()/1000000000.0) <<std::endl;
+    std::cerr<<"\nsize: "<<ds.tellp()<<" time = "<<count / ((end-start).count()/1000000000.0) <<std::endl;
     }
-
+    {
+    std::vector<char> tmp(ss.str().size());
+    boost::rpc::datastream<char*> ds(&tmp.front(),tmp.size());
+    boost::chrono::system_clock::time_point start = boost::chrono::system_clock::now();
+    for( int64_t i = 0; i < count; ++i ) {
+        ss.seekp(0);
+        boost::rpc::raw::pack(ds, t);
+    }
+    boost::chrono::system_clock::time_point end = boost::chrono::system_clock::now();
+    std::cerr<<"time = "<<count / ((end-start).count()/1000000000.0) <<std::endl;
+    }
+/*
     {
     boost::iostreams::stream<boost::iostreams::null_sink> ds;
     boost::chrono::system_clock::time_point start = boost::chrono::system_clock::now();
@@ -72,17 +83,8 @@ int main( int argc, char** argv ) {
     std::cerr<<"null_sink time = "<<count / ((end-start).count()/1000000000.0) <<std::endl;
     }
 
-    {
-    std::vector<char> tmp(ss.str().size());
-    boost::rpc::datastream<char*> ds(&tmp.front(),tmp.size());
-    boost::chrono::system_clock::time_point start = boost::chrono::system_clock::now();
-    for( int64_t i = 0; i < count; ++i ) {
-        ss.seekp(0);
-        boost::rpc::raw::pack(ds, t);
-    }
-    boost::chrono::system_clock::time_point end = boost::chrono::system_clock::now();
-    std::cerr<<"time = "<<count / ((end-start).count()/1000000000.0) <<std::endl;
-    }
+    return 0;
+    */
 
     {
     std::vector<char> tmp(ss.str().size());

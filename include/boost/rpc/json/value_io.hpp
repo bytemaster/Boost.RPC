@@ -48,10 +48,13 @@ namespace boost { namespace rpc { namespace json {
     void pack( boost::rpc::json::value& jsv, const boost::optional<T>& v );
     template<typename T>
     void pack( boost::rpc::json::value& jsv, const required<T>& v );
-    template<typename T, typename Alloc, template<typename,typename> class Container>
-    void pack( boost::rpc::json::value& jsv, const Container<T,Alloc>& value );
-    template<typename T, class Compare, typename Alloc, template<typename,class,typename> class Container>
-    void pack( boost::rpc::json::value& jsv, const Container<T,Compare,Alloc>& value );
+    template<typename T>
+    void pack( boost::rpc::json::value& jsv, const std::vector<T>& value );
+    template<typename T>
+    void pack( boost::rpc::json::value& jsv, const std::list<T>& value );
+
+    template<typename T>
+    void pack( boost::rpc::json::value& jsv, const std::set<T>& value );
     template<typename Key, typename Value>
     void pack( boost::rpc::json::value& jsv, const std::map<Key,Value>& value );
     template<typename Key, typename Value>
@@ -60,6 +63,7 @@ namespace boost { namespace rpc { namespace json {
     void pack( boost::rpc::json::value& jsv, const std::map<std::string,Value>& value );
 
 
+    inline void unpack( const boost::rpc::json::value& jsv, boost::rpc::json::value& v ) { v = jsv; }
     template<typename T> 
     void unpack( const boost::rpc::json::value& jsv, const T& v ); 
     template<typename T> 
@@ -83,10 +87,13 @@ namespace boost { namespace rpc { namespace json {
     void unpack( const boost::rpc::json::value& jsv, boost::optional<T>& v );
     template<typename T>
     void unpack( const boost::rpc::json::value& jsv, required<T>& v );
-    template<typename T, typename Alloc, template<typename,typename> class Container>
-    void unpack( const boost::rpc::json::value& jsv, Container<T,Alloc>& value );
-    template<typename T, class Compare, typename Alloc, template<typename,class,typename> class Container>
-    void unpack( const boost::rpc::json::value& jsv, Container<T,Compare,Alloc>& value );
+    template<typename T>
+    void unpack( const boost::rpc::json::value& jsv, std::vector<T>& value );
+    template<typename T>
+    void unpack( const boost::rpc::json::value& jsv, std::list<T>& value );
+
+    template<typename T>
+    void unpack( const boost::rpc::json::value& jsv, std::set<T>& value );
     template<typename Key, typename Value>
     void unpack( const boost::rpc::json::value& jsv, std::map<Key,Value>& value );
     template<typename Key, typename Value>
@@ -284,27 +291,13 @@ namespace boost { namespace rpc { namespace json {
     }
 
 
-    template<typename T, typename Alloc, template<typename,typename> class Container>
-    inline void pack( boost::rpc::json::value& jsv, const Container<T,Alloc>& value ) {
+    template<typename T>
+    inline void pack( boost::rpc::json::value& jsv, const std::vector<T>& value ) {
         jsv = boost::rpc::json::array();
         boost::rpc::json::array& a = jsv;
         a.resize(value.size());
-        typename Container<T,Alloc>::const_iterator itr = value.begin();
-        typename Container<T,Alloc>::const_iterator end = value.end();
-        uint32_t i = 0;
-        while( itr != end ) {
-            boost::rpc::json::pack( a[i], *itr );
-            ++itr;
-            ++i;
-        }
-    }
-    template<typename T, class Compare, typename Alloc, template<typename,class,typename> class Container>
-    inline void pack( boost::rpc::json::value& jsv, const Container<T,Compare,Alloc>& value ) {
-        jsv = boost::rpc::json::array();
-        boost::rpc::json::array& a = jsv;
-        a.resize(value.size());
-        typename Container<T,Compare,Alloc>::const_iterator itr = value.begin();
-        typename Container<T,Compare,Alloc>::const_iterator end = value.end();
+        typename std::vector<T>::const_iterator itr = value.begin();
+        typename std::vector<T>::const_iterator end = value.end();
         uint32_t i = 0;
         while( itr != end ) {
             boost::rpc::json::pack( a[i], *itr );
@@ -313,8 +306,39 @@ namespace boost { namespace rpc { namespace json {
         }
     }
 
-    template<typename T, typename Alloc, template<typename,typename> class Container>
-    inline void unpack( const boost::rpc::json::value& jsv, Container<T,Alloc>& value ) {
+    template<typename T>
+    inline void pack( boost::rpc::json::value& jsv, const std::list<T>& value ) {
+        jsv = boost::rpc::json::array();
+        boost::rpc::json::array& a = jsv;
+        a.resize(value.size());
+        typename std::list<T>::const_iterator itr = value.begin();
+        typename std::list<T>::const_iterator end = value.end();
+        uint32_t i = 0;
+        while( itr != end ) {
+            boost::rpc::json::pack( a[i], *itr );
+            ++itr;
+            ++i;
+        }
+    }
+
+
+    template<typename T>
+    inline void pack( boost::rpc::json::value& jsv, const std::set<T>& value ) {
+        jsv = boost::rpc::json::array();
+        boost::rpc::json::array& a = jsv;
+        a.resize(value.size());
+        typename std::set<T>::const_iterator itr = value.begin();
+        typename std::set<T>::const_iterator end = value.end();
+        uint32_t i = 0;
+        while( itr != end ) {
+            boost::rpc::json::pack( a[i], *itr );
+            ++itr;
+            ++i;
+        }
+    }
+
+    template<typename T>
+    inline void unpack( const boost::rpc::json::value& jsv, std::vector<T>& value ) {
         const boost::rpc::json::array& a = jsv;
         value.reserve( a.size() );
         for( uint32_t i = 0; i < a.size(); ++i ) {
@@ -323,12 +347,22 @@ namespace boost { namespace rpc { namespace json {
             value.push_back(v);
         }
     }
-    template<typename T, class Compare, typename Alloc, template<typename,class,typename> class Container>
-    inline void unpack( const boost::rpc::json::value& jsv, Container<T,Compare,Alloc>& value ) {
+    template<typename T>
+    inline void unpack( const boost::rpc::json::value& jsv, std::list<T>& value ) {
+        const boost::rpc::json::array& a = jsv;
+        value.reserve( a.size() );
+        for( uint32_t i = 0; i < a.size(); ++i ) {
+            T v;
+            boost::rpc::json::unpack( a[i], v );
+            value.push_back(v);
+        }
+    }
+    template<typename T>
+    inline void unpack( const boost::rpc::json::value& jsv, std::set<T>& value ) {
         const boost::rpc::json::array& a = jsv;
         value.resize( a.size() );
-        typename Container<T,Compare,Alloc>::iterator itr = value.begin();
-        typename Container<T,Compare,Alloc>::iterator end = value.end();
+        typename std::set<T>::iterator itr = value.begin();
+        typename std::set<T>::iterator end = value.end();
         uint32_t i = 0;
         while( itr != end ) {
             boost::rpc::json::unpack( a[i], *itr );
