@@ -31,6 +31,7 @@ namespace boost { namespace rpc { namespace json {
        value( int16_t v ):val( double(v) ){}
        value( uint16_t v ):val( double(v) ){}
        value():val(null_t()){}
+       value( const value& c ):val(c.val){}
 
        template<typename T>
        operator const T&()const;
@@ -68,6 +69,8 @@ namespace boost { namespace rpc { namespace json {
        // treat it like an array or object
        value&        operator[]( const std::string& index );
        const value&  operator[]( const std::string& )const;
+       value&        operator[]( const char* index );
+       const value&  operator[]( const char* index )const;
        value&        operator[]( uint32_t index );
        const value&  operator[]( uint32_t index )const;
 
@@ -75,6 +78,7 @@ namespace boost { namespace rpc { namespace json {
        void   resize( uint32_t size );
        void   clear();
 
+       bool contains( const std::string& key )const;
 
        value_variant val;
     };
@@ -103,6 +107,7 @@ namespace boost { namespace rpc { namespace json {
         friend std::ostream& operator<<( std::ostream& os, const object&  ){ return os; }
         inline void         clear() { keys.clear(); }
         inline void reserve( size_t s ) { keys.reserve(s); }
+        bool contains( const std::string& key )const;
 
         std::vector< detail::key_val > keys;
     };
@@ -161,7 +166,35 @@ namespace boost { namespace rpc { namespace json {
        };
        template<typename T>
        struct key_visitor : public boost::static_visitor<T> {
-          key_visitor( const std::string& key = 0 ):m_key(key){}
+          key_visitor( const std::string& key, value& v ):m_val(v),m_key(key){}
+
+          T operator()( const boost::variant<int,std::string,double,null_t>& )const {
+            BOOST_THROW_EXCEPTION( std::out_of_range( "not an object or array" ) );
+            typename boost::remove_reference<T>::type* val;
+            return *val;
+          }
+          T operator()( const json::array& d )const {
+            return d[boost::lexical_cast<int>(m_key)];
+          }
+          T operator()( const json::object& d )const {
+            return d[m_key];
+          }
+          T operator()( null_t& )const {
+            m_val = json::object();
+            return m_val[m_key];
+          }
+          T operator()( json::array& d )const {
+            return d[boost::lexical_cast<int>(m_key)];
+          }
+          T operator()( json::object& d )const {
+            return d[m_key];
+          }
+          value&      m_val;
+          std::string m_key;
+       };
+       template<typename T>
+       struct const_key_visitor : public boost::static_visitor<T> {
+          const_key_visitor( const std::string& key, const value& v ):m_val(v),m_key(key){}
 
           T operator()( const boost::variant<int,std::string,double,null_t>& )const {
             BOOST_THROW_EXCEPTION( std::out_of_range( "not an object or array" ) );
@@ -180,6 +213,7 @@ namespace boost { namespace rpc { namespace json {
           T operator()( json::object& d )const {
             return d[m_key];
           }
+          const value&      m_val;
           std::string m_key;
        };
     };

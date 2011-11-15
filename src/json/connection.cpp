@@ -8,10 +8,10 @@ namespace boost { namespace rpc { namespace json {
 
   using boost::reflect::void_t;
 
-  typedef boost::function<void(const boost::json::Value&, boost::json::Value&)> json_method;
+  typedef boost::function<void(const boost::rpc::json::value&, boost::rpc::json::value&)> json_method;
   typedef std::map<std::string,json_method >                        method_map;
   typedef std::map<std::string,boost::signals::connection >         signal_map;
-  typedef std::map<int,boost::cmt::promise<boost::json::Value>* >   pending_req_map;
+  typedef std::map<int,boost::cmt::promise<boost::rpc::json::value>* >   pending_req_map;
   typedef boost::fusion::vector<std::string,int>                    connect_signal_params;
   typedef boost::function<void_t(const connect_signal_params&)>     connect_signal_functor;
 
@@ -99,11 +99,11 @@ namespace boost { namespace rpc { namespace json {
     my->methods[name] = h;
   }
 
-  void connection::invoke( boost::json::Value& msg, boost::json::Value& rtn_msg, const boost::chrono::microseconds& timeout_us ) {
+  void connection::invoke( boost::rpc::json::value& msg, boost::rpc::json::value& rtn_msg, const boost::chrono::microseconds& timeout_us ) {
     int id = ++my->next_id;
-    msg.get_obj()[0].value_ = id;
+    msg["id"] = id;
 
-    boost::cmt::stack_retainable<boost::cmt::promise<boost::json::Value> > p;
+    boost::cmt::stack_retainable<boost::cmt::promise<boost::rpc::json::value> > p;
     my->pending_req[id] = &p;
 
     send( msg );
@@ -115,14 +115,13 @@ namespace boost { namespace rpc { namespace json {
     }
   }
   
-  void connection::on_receive( const boost::json::Value& v ) {
+  void connection::on_receive( const boost::rpc::json::value& v ) {
      if( v.contains( "method" ) ) {
-       std::string       name  = v["method"].get_str();
-       boost::json::Value result = boost::json::Object();
+       std::string       name  = v["method"];
+       boost::rpc::json::value result;
        result["id"]     = v["id"];
        try {
          method_map::const_iterator itr = my->methods.find(name);
-         wlog( "my %1%", my );
          if( itr != my->methods.end() ) {
            itr->second( v["params"], result["result"] );
          } else {
@@ -142,16 +141,16 @@ namespace boost { namespace rpc { namespace json {
        send(result);
      } else {
        if( v.contains( "id" ) ) {
-         int id = v["id"].get_int();
+         int id = v["id"];
          pending_req_map::iterator itr = my->pending_req.find(id);
          if( itr != my->pending_req.end() ) {
            itr->second->set_value(v);
            my->pending_req.erase(itr);
          } else {
-           elog( "unhandled message: '%1%'", boost::json::write(v) );
+           elog( "unhandled message: '%1%'", boost::rpc::json::to_string(v) );
          }
        } else {
-         elog( "message has no 'id' field: '%1%'", boost::json::write(v) );
+         elog( "message has no 'id' field: '%1%'", boost::rpc::json::to_string(v) );
        }
     }
   }

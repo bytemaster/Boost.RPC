@@ -4,6 +4,11 @@
 #include <boost/throw_exception.hpp>
 
 namespace boost { namespace rpc { 
+    struct json_parse_error : public virtual boost::exception, public virtual std::exception
+    {
+        const char*  what()const throw()    { return "json_parse_error";     }
+        virtual void rethrow()const         { BOOST_THROW_EXCEPTION(*this);        }
+    };
 
     struct required_field_not_set : public virtual boost::exception, public virtual std::exception
     {

@@ -1,4 +1,5 @@
 #include <boost/rpc/json/value.hpp>
+#include <boost/rpc/errors.hpp>
 #include <boost/spirit/include/qi.hpp>
 #include <boost/fusion/include/adapt_struct.hpp>
 #include <boost/spirit/include/support_utree.hpp>
@@ -32,8 +33,10 @@ namespace boost { namespace rpc { namespace json {
             null_s.add("null",null_t());
 
             null_r    %= null_s;
-            json_r    %=  (double_ | bool_ | unesc_str | object_r | array_r | null_r);
-            array_r   %= '[' >> json_r % ',' >> ']';
+            json_r    %=  (double_ | bool_ | unesc_str | object_r | array_r | null_r |  empty_array_r | empty_object_r);
+            empty_array_r %= ('[' >> eps >> ']');
+            empty_object_r %= ('{' >> eps >> '}');
+            array_r   %= ('[' >>(json_r % ',') >> ']');
             keyval_r  %= unesc_str >> ':' >> json_r;
             object_r  %= '{' >> keyval_r % ',' >> '}';
             start_tag %= json_r;
@@ -42,12 +45,14 @@ namespace boost { namespace rpc { namespace json {
        qi::symbols<char const, char const>  unesc_char;
        qi::symbols<char const, null_t>         null_s;
 
+       qi::rule<Iterator, json::array(),    ascii::space_type> empty_array_r;
        qi::rule<Iterator, json::value(),    ascii::space_type> start_tag;
        qi::rule<Iterator, null_t(),         ascii::space_type> null_r;
        qi::rule<Iterator, std::string(),    ascii::space_type> unesc_str;
        qi::rule<Iterator, json::value(),    ascii::space_type> json_r;
        qi::rule<Iterator, json::array(),    ascii::space_type> array_r;
        qi::rule<Iterator, json::object(),   ascii::space_type> object_r;
+       qi::rule<Iterator, json::object(),   ascii::space_type> empty_object_r;
        qi::rule<Iterator, json::detail::key_val(),  ascii::space_type> keyval_r;
     };
     
@@ -96,7 +101,9 @@ namespace boost { namespace rpc { namespace json {
     
  template<typename Iterator, typename Expr, typename Skip>
  void parse( Iterator& itr, const Iterator& e, const Expr& g, const Skip& s, rpc::json::value& v ) {
-   phrase_parse(itr,e,g,s,v); 
+   if( !phrase_parse(itr,e,g,s,v) ) {
+     BOOST_THROW_EXCEPTION( boost::rpc::json_parse_error() ); 
+   }
  }
  void read( const std::string& j, rpc::json::value& v ) {
     std::string::const_iterator iter = j.begin();
@@ -202,12 +209,18 @@ std::ostream& write(std::ostream& os, const boost::rpc::json::value& v, bool pre
         boost::apply_visitor( json_value_pretty_printer(os), v.val );
     return os;
 }
+ value&        value::operator[]( const char* index ) {
+   return boost::apply_visitor( detail::key_visitor<value&>(std::string(index),*this), val );
+ }
+ const value&  value::operator[]( const char* index )const {
+   return boost::apply_visitor( detail::const_key_visitor<const value&>(index,*this), val );
+ }
 
  value&        value::operator[]( const std::string& index ) {
-   return boost::apply_visitor( detail::key_visitor<value&>(index), val );
+   return boost::apply_visitor( detail::key_visitor<value&>(index,*this), val );
  }
  const value&  value::operator[]( const std::string& index )const {
-   return boost::apply_visitor( detail::key_visitor<const value&>(index), val );
+   return boost::apply_visitor( detail::const_key_visitor<const value&>(index,*this), val );
  }
  value&        value::operator[]( uint32_t index ) {
    return boost::apply_visitor( detail::index_visitor<value&>(index), val );
@@ -236,6 +249,21 @@ const value& object::operator[]( const std::string& index )const {
       ++itr;
     }
     BOOST_THROW_EXCEPTION( std::out_of_range( "unknown key '"+index+"'" ) );
+}
+
+bool value::contains( const std::string& key )const {
+  const object& obj = *this;
+  return obj.contains(key);
+}
+bool object::contains( const std::string& key )const {
+   std::vector<detail::key_val>::const_iterator itr = keys.begin();
+   std::vector<detail::key_val>::const_iterator end = keys.end();
+   while( itr != end ) {
+     if( itr->key == key ) 
+       return true;
+     ++itr;
+   }
+   return false;
 }
 
 

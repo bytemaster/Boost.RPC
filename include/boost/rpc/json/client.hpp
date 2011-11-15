@@ -1,7 +1,7 @@
 #ifndef _BOOST_RPC_JSON_CLIENT_HPP_
 #define _BOOST_RPC_JSON_CLIENT_HPP_
+#include <boost/rpc/json/value_io.hpp>
 #include <boost/reflect/any_ptr.hpp>
-#include <boost/rpc/json.hpp>
 #include <boost/rpc/json/connection.hpp>
 #include <boost/rpc/mirror_interface.hpp>
 #include <boost/enable_shared_from_this.hpp>

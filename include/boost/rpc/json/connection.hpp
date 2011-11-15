@@ -1,7 +1,7 @@
 #ifndef _BOOST_RPC_JSON_CONNECTION_HPP_
 #define _BOOST_RPC_JSON_CONNECTION_HPP_
+#include <boost/rpc/json/value_io.hpp>
 #include <boost/cmt/future.hpp>
-#include <boost/rpc/json.hpp>
 #include <boost/cmt/retainable.hpp>
 #include <boost/function.hpp>
 #include <boost/signals.hpp>
@@ -22,7 +22,7 @@ namespace boost { namespace rpc { namespace json {
   class connection : public boost::cmt::retainable, boost::noncopyable {
     public:
       typedef boost::cmt::retainable_ptr<connection>              ptr;
-      typedef boost::function<void(const boost::json::Value&, boost::json::Value&)> handler;
+      typedef boost::function<void(const boost::rpc::json::value&, boost::rpc::json::value&)> handler;
   
       connection();
       virtual ~connection();
@@ -30,16 +30,16 @@ namespace boost { namespace rpc { namespace json {
       void add_signal_connection( const std::string& name, 
                                   const boost::signals::connection& c );
       void add_method_handler( const std::string& name, const handler& h ); 
-      void invoke( boost::json::Value& msg, boost::json::Value& rtn_msg, 
+      void invoke( boost::rpc::json::value& msg, boost::rpc::json::value& rtn_msg, 
                    const boost::chrono::microseconds& timeout_us = boost::chrono::microseconds::max() );
 
-      virtual void send( const boost::json::Value& v )=0;
+      virtual void send( const boost::rpc::json::value& v )=0;
       virtual void start()=0;
       virtual bool is_connected()const = 0;
 
       boost::signal<void()> disconnected;
     protected:
-      void on_receive( const boost::json::Value& v );
+      void on_receive( const boost::rpc::json::value& v );
 
     private:
       class connection_private* my;
@@ -52,18 +52,21 @@ namespace boost { namespace rpc { namespace json {
       typedef ResultType result_type;
 
       rpc_send_functor( connection& c, const char* name )
-      :m_con(c),m_msg(boost::json::Object()) 
+      :m_con(c)
       {
-        boost::json::Object&  m_obj = m_msg.get_obj(); // obj stored in m_msg
-        m_obj.push_back( boost::json::Pair( "id", 0 ) );
-        m_obj.push_back( boost::json::Pair( "method", std::string(name) ) );
-        m_obj.push_back( boost::json::Pair( "params", boost::json::Array() ) );
+        m_msg["id"] = 0;
+        m_msg["method"] = std::string(name);
+        m_msg["params"] = boost::rpc::json::array();
+       // boost::json::Object&  m_obj = m_msg.get_obj(); // obj stored in m_msg
+       // m_obj.push_back( boost::json::Pair( "id", 0 ) );
+       // m_obj.push_back( boost::json::Pair( "method", std::string(name) ) );
+       // m_obj.push_back( boost::json::Pair( "params", boost::json::Array() ) );
       }
 
       ResultType operator()( const Seq& params ) const  {
-        boost::json::Object&  m_obj = m_msg.get_obj(); // obj stored in m_msg
-        pack( m_obj.back().value_, params );
-        boost::json::Value  rtn_msg;
+        //boost::json::Object&  m_obj = m_msg.get_obj(); // obj stored in m_msg
+        pack( m_msg["params"], params );
+        boost::rpc::json::value  rtn_msg;
         m_con.invoke( m_msg, rtn_msg );
         ResultType  ret_val;
         if(rtn_msg.contains("error") ) {
@@ -80,25 +83,24 @@ namespace boost { namespace rpc { namespace json {
         BOOST_THROW_EXCEPTION( e );
       }
       connection&          m_con;
-      mutable boost::json::Value    m_msg;
+      mutable boost::rpc::json::value    m_msg;
     }; // rpc_send_functor
     template<typename Seq,typename ResultType>
     struct rpc_send_functor<Seq, boost::cmt::future<ResultType> > {
       typedef ResultType result_type;
 
       rpc_send_functor( connection& c, const char* name )
-      :m_con(c),m_msg(boost::json::Object()) 
+      :m_con(c)
       {
-        boost::json::Object&  m_obj = m_msg.get_obj(); // obj stored in m_msg
-        m_obj.push_back( boost::json::Pair( "id", 0 ) );
-        m_obj.push_back( boost::json::Pair( "method", std::string(name) ) );
-        m_obj.push_back( boost::json::Pair( "params", boost::json::Array() ) );
+        m_msg["id"] = 0;
+        m_msg["method"] = std::string(name);
+        m_msg["params"] = boost::rpc::json::array();
       }
 
       ResultType operator()( const Seq& params ) const  {
-        boost::json::Object&  m_obj = m_msg.get_obj(); // obj stored in m_msg
-        pack( m_obj.back().value_, params );
-        boost::json::Value  rtn_msg;
+        //boost::json::Object&  m_obj = m_msg.get_obj(); // obj stored in m_msg
+        pack( m_msg["params"], params );
+        boost::rpc::json::value  rtn_msg;
         m_con.invoke( m_msg, rtn_msg );
         ResultType  ret_val;
         if(rtn_msg.contains("error") ) {
@@ -115,7 +117,7 @@ namespace boost { namespace rpc { namespace json {
         BOOST_THROW_EXCEPTION( e );
       }
       connection&          m_con;
-      mutable boost::json::Value    m_msg;
+      mutable boost::rpc::json::value    m_msg;
     }; // rpc_send_functor
 
 
@@ -124,7 +126,7 @@ namespace boost { namespace rpc { namespace json {
     struct rpc_recv_functor {
       rpc_recv_functor( Functor f, connection&, const char* )
       :m_func(f){}
-      void operator()( const boost::json::Value& params, boost::json::Value& rtn ) {
+      void operator()( const boost::rpc::json::value& params, boost::rpc::json::value& rtn ) {
         Seq paramv;
         unpack( params, paramv );
         pack( rtn, m_func(paramv) );
@@ -166,7 +168,7 @@ namespace boost { namespace rpc { namespace json {
       }
 
 
-      void operator()( const boost::json::Value& params, boost::json::Value& rtn ) {
+      void operator()( const boost::rpc::json::value& params, boost::rpc::json::value& rtn ) {
         wlog( "rpc_recv_functor %1%", this );
         scoped_block_signal block_reverse(m_sig_con);
         Seq paramv;

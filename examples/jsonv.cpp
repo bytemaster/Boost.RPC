@@ -6,11 +6,12 @@ struct test {
     int a;
     std::string b;
     std::vector<std::string> data;
+    std::vector<std::string> data2;
     std::map<std::string,std::string> keys;
     std::vector<char> bdata;
 };
 
-BOOST_REFLECT( test,(a)(b)(data)(keys)(bdata) )
+BOOST_REFLECT( test,(a)(b)(data)(data2)(keys)(bdata) )
 
 int main( int argc, char** argv ) {
     test t;
@@ -24,9 +25,9 @@ int main( int argc, char** argv ) {
     std::string jtest = boost::rpc::json::to_json(t);
     std::cerr<<"jtest: " << jtest<<std::endl;
 //    std::cerr<<boost::rpc::json::to_jsonf(t)<<std::endl;
-    std::cerr<<"unpack...\n";
+    std::cerr<<"unpack benchmark...\n";
 
-    for( uint32_t i = 0; i < 1000000; ++i ) {
+    for( uint32_t i = 0; i < 10000; ++i ) {
         test t2;
         boost::rpc::json::from_json( jtest, t2 );
     }
@@ -37,6 +38,7 @@ int main( int argc, char** argv ) {
     std::cerr<<boost::rpc::json::to_json(boost::rpc::message())<<std::endl;
     std::cerr<<boost::rpc::json::to_json(t.data)<<std::endl;
 
+    boost::rpc::json::from_json( "{}", t2 );
 
     return 0;
 }

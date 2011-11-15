@@ -32,12 +32,12 @@ namespace boost { namespace rpc { namespace json { namespace tcp {
         return true;
     }
 
-    void connection::send( const boost::json::Value& v ) {
+    void connection::send( const boost::rpc::json::value& v ) {
        std::stringstream ss;
-       std::cerr<<"send:";
-       boost::json::write(v,std::cerr, boost::json::remove_trailing_zeros);
-       std::cerr<<"\n";
-       boost::json::write(v,ss, boost::json::remove_trailing_zeros);
+       //std::cerr<<"send:";
+       //boost::rpc::json::write(std::cerr,v);
+       //std::cerr<<"\n";
+       boost::rpc::json::write(ss,v);
        m_sock->write(ss.str().c_str(),ss.str().size());
     }
     
@@ -48,7 +48,7 @@ namespace boost { namespace rpc { namespace json { namespace tcp {
     void connection::read_loop() {
         m_connected = true;
         try {
-            boost::json::Value v;
+            boost::rpc::json::value v;
             boost::cmt::asio::tcp::socket::iterator itr(m_sock.get());
             boost::cmt::asio::tcp::socket::iterator end;
             std::string buf;
@@ -68,11 +68,12 @@ namespace boost { namespace rpc { namespace json { namespace tcp {
                 buf.push_back(*itr);
                 if( depth == 0 ) {
                     std::cerr<<"recv:";
-                    boost::json::read( buf, v );
+                    boost::rpc::json::read( buf, v );
                     std::cerr<<buf<<std::endl;
-                    boost::cmt::async( boost::bind(&connection::on_receive, this, v) );
+                    on_receive(v);
+                    //boost::cmt::async( boost::bind(&connection::on_receive, this, v) );
                     buf.resize(0);
-                    v = boost::json::Value();
+                    v = boost::rpc::json::value();
                 }
                 ++itr;
             }

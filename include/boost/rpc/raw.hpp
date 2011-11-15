@@ -22,6 +22,12 @@ namespace boost { namespace rpc { namespace raw {
 
 
     template<typename Stream, typename T>
+    void unpack( Stream& s, boost::optional<T>& v );
+    template<typename Stream, typename T>
+    void pack( Stream& s, const boost::optional<T>& v );
+    template<typename Stream> inline void unpack( Stream& s, std::string& v );
+
+    template<typename Stream, typename T>
     inline void pack( Stream& s, const T& v );
     template<typename Stream, typename T>
     inline void unpack( Stream& s, T& v );
@@ -30,6 +36,11 @@ namespace boost { namespace rpc { namespace raw {
     inline void pack( Stream& s, const Container<T,Alloc<T> >& value );
     template<typename Stream, typename T, template<typename> class Alloc, template<typename,typename> class Container>
     inline void unpack( Stream& s, Container<T,Alloc<T> >& value );
+
+    template<typename Stream, typename T, class Compare, template<typename> class Alloc, template<typename,class,typename> class Container>
+    inline void pack( Stream& s, const Container<T,Compare,Alloc<T> >& value );
+    template<typename Stream, typename T, class Compare, template<typename> class Alloc, template<typename,class,typename> class Container>
+    inline void unpack( Stream& s, Container<T,Compare,Alloc<T> >& value );
 
 
     template<typename Stream, typename Key, typename Value>
@@ -117,7 +128,7 @@ namespace boost { namespace rpc { namespace raw {
     }
 
     template<typename Stream, typename T>
-    void unpack( const Stream& s, boost::optional<T>& v ) {
+    void unpack( Stream& s, boost::optional<T>& v ) {
       bool b; unpack( s, b ); 
       if( b ) { v = T(); unpack( s, *v ); }
     }
@@ -267,6 +278,26 @@ namespace boost { namespace rpc { namespace raw {
       };
     } // namesapce detail
 
+    template<typename Stream, typename T, class Compare, template<typename> class Alloc, template<typename,class,typename> class Container>
+    inline void pack( Stream& s, const Container<T,Compare,Alloc<T> >& value ) {
+      pack( s, unsigned_int(value.size()) );
+      typename Container<T,Compare,Alloc<T> >::const_iterator itr = value.begin();
+      typename Container<T,Compare,Alloc<T> >::const_iterator end = value.end();
+      while( itr != end ) {
+        boost::rpc::raw::pack( s, *itr );
+        ++itr;
+      }
+    }
+
+    template<typename Stream, typename T, class Compare, template<typename> class Alloc, template<typename,class,typename> class Container>
+    inline void unpack( Stream& s, Container<T,Compare,Alloc<T> >& value ) {
+      unsigned_int size; unpack( s, size );
+      for( uint32_t i = 0; i < size.value; ++i ) {
+        T v;
+        boost::rpc::raw::unpack(s, v);
+        value.insert(v);
+      }
+    }
     
 
     template<typename Stream, typename T, template<typename> class Alloc, template<typename,typename> class Container>
