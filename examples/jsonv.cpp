@@ -22,7 +22,7 @@ BOOST_REFLECT(msg,(id)(method))
 int main( int argc, char** argv ) {
 
     msg m;
-    boost::rpc::json::from_json( " { \"id\":5.0, \"method\":  \"Hello\"}", m );
+    boost::rpc::json::from_json( " { \"id\":5.0, \"method\":  \"Hello\"}\n ", m );
     std::cout<< boost::rpc::json::to_json(m);
 
     test t;

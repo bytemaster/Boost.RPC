@@ -55,6 +55,7 @@ namespace boost { namespace rpc { namespace json { namespace tcp {
 
             int depth = 0;
             int quote = 0;
+            bool found = false;
             while( itr != end ) {
                 if( !quote ) {
                     if( *itr == '{' ) ++depth;
@@ -62,11 +63,16 @@ namespace boost { namespace rpc { namespace json { namespace tcp {
                     else if( *itr == '}' ) --depth;
                     else if( *itr == ']' ) --depth;
                     else if( *itr == '"' ) quote = 1;
+
+                    if( depth > 0 )
+                      found = true;
                 } else {
                     if( *itr == '"' ) quote = 0;
                 }
-                buf.push_back(*itr);
-                if( depth == 0 ) {
+                if( found )
+                    buf.push_back(*itr);
+                if( found && depth == 0 ) {
+                    found = false;
                     std::cerr<<"recv:";
                     boost::rpc::json::read( buf, v );
                     std::cerr<<buf<<std::endl;
