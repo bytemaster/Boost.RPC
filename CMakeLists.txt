@@ -9,12 +9,13 @@ include_directories( ../atomic/include )
 add_subdirectory( examples )
 add_subdirectory( tests )
 
-SET( libraries boost_json boost_cmt )
+SET( libraries  boost_cmt )
 SET( sources 
-    src/json/tcp/connection.cpp
-    src/json/connection.cpp
-    src/json/value.cpp
-    src/json/tcp/server.cpp
+        src/json/connection.cpp
+        src/json/tcp_connection.cpp
+        src/json/client_base.cpp
+        src/json/value.cpp
+        src/json/tcp_server.cpp
              )
 
 install( DIRECTORY include/boost/rpc DESTINATION include/boost )

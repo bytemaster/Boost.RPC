@@ -1,19 +1,19 @@
-#include <boost/rpc/json/value.hpp>
-#include <boost/rpc/errors.hpp>
+#include <json/value.hpp>
+#include <json/error.hpp>
 #include <boost/spirit/include/qi.hpp>
 #include <boost/fusion/include/adapt_struct.hpp>
 #include <boost/spirit/include/support_utree.hpp>
 #include <iomanip>
 
-BOOST_FUSION_ADAPT_STRUCT( boost::rpc::json::detail::key_val, (std::string,key)(boost::rpc::json::value,val) )
-BOOST_FUSION_ADAPT_STRUCT( boost::rpc::json::object, 
-                            (std::vector<boost::rpc::json::detail::key_val>, keys) );
-BOOST_FUSION_ADAPT_STRUCT( boost::rpc::json::value, 
-                            (boost::rpc::json::value_variant, val) );
-BOOST_FUSION_ADAPT_STRUCT( boost::rpc::json::array,  (std::vector<boost::rpc::json::value>, vals) );
+BOOST_FUSION_ADAPT_STRUCT( json::detail::key_val, (std::string,key)(json::value,val) )
+BOOST_FUSION_ADAPT_STRUCT( json::object, 
+                            (std::vector<json::detail::key_val>, keys) );
+BOOST_FUSION_ADAPT_STRUCT( json::value, 
+                            (json::value_variant, val) );
+BOOST_FUSION_ADAPT_STRUCT( json::array,  (std::vector<json::value>, vals) );
 
 
-namespace boost { namespace rpc { namespace json {
+namespace json {
 
     namespace detail {
     using namespace boost::spirit;
@@ -99,20 +99,6 @@ namespace boost { namespace rpc { namespace json {
 
  } // namespace detail
     
- template<typename Iterator, typename Expr, typename Skip>
- void parse( Iterator& itr, const Iterator& e, const Expr& g, const Skip& s, rpc::json::value& v ) {
-   if( !phrase_parse(itr,e,g,s,v) ) {
-     BOOST_THROW_EXCEPTION( boost::rpc::json_parse_error() ); 
-   }
- }
- void read( const std::string& j, rpc::json::value& v ) {
-    std::string::const_iterator iter = j.begin();
-    std::string::const_iterator end = j.end();
-    typedef boost::rpc::json::detail::json_grammar<std::string::const_iterator> gram;
-    static gram g;
-    boost::rpc::json::parse( iter, end, g, boost::spirit::ascii::space, v );
-//    phrase_parse( iter, end, g, boost::spirit::ascii::space, v );
- }
 
 
 
@@ -128,10 +114,10 @@ struct json_value_printer : boost::static_visitor<> {
         os.flags( std::ios::fixed );
         os << text;
     }
-    void operator()(boost::rpc::json::null_t const& obj) const {
+    void operator()(json::null_t const& obj) const {
         os << "null";
     }
-    void operator()(boost::rpc::json::object const& obj) const {
+    void operator()(json::object const& obj) const {
         os << "{";
         for( uint32_t i = 0; i < obj.keys.size(); ++i ) {
             os<<'"'<<obj.keys[i].key<<'"' << ":";
@@ -141,7 +127,7 @@ struct json_value_printer : boost::static_visitor<> {
         }
         os << "}";
     }
-    void operator()(boost::rpc::json::array const& text) const {
+    void operator()(json::array const& text) const {
         os << "[";
         for( uint32_t i = 0; i < text.vals.size(); ++i ) {
             boost::apply_visitor( json_value_printer(os), text.vals[i].val);
@@ -167,14 +153,14 @@ struct json_value_pretty_printer : boost::static_visitor<>
         os.flags( std::ios::fixed );
         os << text;
     }
-    void operator()(boost::rpc::json::null_t const& obj) const {
+    void operator()(json::null_t const& obj) const {
         os << "null";
     }
-    void operator()(boost::rpc::json::object const& obj) const {
+    void operator()(json::object const& obj) const {
         if( obj.keys.size() == 0 ){ os <<"{}"; return; }
         os << "{\n";
         for( uint32_t i = 0; i < obj.keys.size(); ++i ) {
-            os<<std::setw(depth*4)<<'"'<<obj.keys[i].key<<'"' << ":";
+            os<<std::setw(depth*4)<<""<<'"'<<obj.keys[i].key<<'"' << ":";
             boost::apply_visitor( json_value_pretty_printer(os,depth+1), obj.keys[i].val.val);
             if( i != obj.keys.size()-1 )  
                 os <<",";
@@ -182,7 +168,7 @@ struct json_value_pretty_printer : boost::static_visitor<>
         }
         os << std::setw(depth*4-4)<<"}";
     }
-    void operator()(boost::rpc::json::array const& text) const {
+    void operator()(json::array const& text) const {
         if( text.vals.size() == 0 ) { os <<"[]"; return; }
 
         os << "[\n";
@@ -202,16 +188,77 @@ struct json_value_pretty_printer : boost::static_visitor<>
 
 
 
-std::ostream& write(std::ostream& os, const boost::rpc::json::value& v, bool pretty  ) {
+template<typename Iterator, typename Expr, typename Skip>
+void parse( Iterator& itr, const Iterator& e, const Expr& g, const Skip& s, json::value& v ) {
+  if( !phrase_parse(itr,e,g,s,v) ) {
+    BOOST_THROW_EXCEPTION( json::parse_error() ); 
+  }
+}
+void from_string( const std::string& j, json::value& v ) {
+   std::string::const_iterator iter = j.begin();
+   std::string::const_iterator end = j.end();
+   typedef json::detail::json_grammar<std::string::const_iterator> gram;
+   static gram g;
+   json::parse( iter, end, g, boost::spirit::ascii::space, v );
+}
+
+void to_string( const value& v, std::string& j, bool pretty  ) {
+  std::stringstream ss(j);
+  write( ss, v, pretty );
+  j = ss.str();
+}
+
+
+std::ostream& write(std::ostream& os, const json::value& v, bool pretty  ) {
     if( !pretty )
         boost::apply_visitor( json_value_printer(os), v.val );
     else
         boost::apply_visitor( json_value_pretty_printer(os), v.val );
     return os;
 }
+
+
+value::value():val(null_t()){}
+value::value( const value& c ):val(c.val){}
+value::value( const std::string& v ):val( v ){}
+value::value( double v ):val( v ){}
+value::value( bool v ):val( v ){}
+value::value( const object& v ):val( v ){}
+value::value( const array& v ):val( v ){}
+
+value::operator int()const                { return boost::get<double>(val);      }
+value::operator int64_t()const            { return boost::get<double>(val);      }
+value::operator uint64_t()const           { return boost::get<double>(val);      }
+value::operator uint32_t()const           { return boost::get<double>(val);      }
+value::operator uint16_t()const           { return boost::get<double>(val);      }
+value::operator uint8_t()const            { return boost::get<double>(val);      }
+value::operator int16_t()const            { return boost::get<double>(val);      }
+value::operator int8_t()const             { return boost::get<double>(val);      }
+value::operator double()const             { return boost::get<double>(val);      }
+value::operator float()const              { return boost::get<double>(val);      }
+value::operator bool()const               { return boost::get<bool>(val);        }
+value::operator const std::string&()const { return boost::get<std::string>(val); }
+value::operator std::string&()            { return boost::get<std::string>(val); }
+value::operator const json::object&()const{ return boost::get<json::object>(val); }
+value::operator json::object&()           { return boost::get<json::object>(val); }
+value::operator const json::array&()const { return boost::get<json::array>(val); }
+value::operator json::array&()            { return boost::get<json::array>(val); }
+
+
+value& value::operator = ( null_t v )             { val = v; }
+value& value::operator = ( bool v )               { val = v; }
+value& value::operator = ( double v )             { val = v; }
+value& value::operator = ( int64_t v )            { val = (double)v; }
+value& value::operator = ( uint64_t v )           { val = (double)v; }
+value& value::operator = ( const std::string& v ) { val = v; }
+value& value::operator = ( const json::object& v ){ val = v; }
+value& value::operator = ( const json::array& v ) { val = v; }
+
+
  value&        value::operator[]( const char* index ) {
    return boost::apply_visitor( detail::key_visitor<value&>(std::string(index),*this), val );
  }
+
  const value&  value::operator[]( const char* index )const {
    return boost::apply_visitor( detail::const_key_visitor<const value&>(index,*this), val );
  }
@@ -252,8 +299,8 @@ const value& object::operator[]( const std::string& index )const {
 }
 
 bool value::contains( const std::string& key )const {
-  const object& obj = *this;
-  return obj.contains(key);
+  const object* obj = boost::get<object>(&val); //*this;
+  return obj && obj->contains(key);
 }
 bool object::contains( const std::string& key )const {
    std::vector<detail::key_val>::const_iterator itr = keys.begin();
@@ -266,6 +313,13 @@ bool object::contains( const std::string& key )const {
    return false;
 }
 
+value& operator<<(value& jv, const value& v ) {
+  return jv = v;
+}
+const value& operator>>(const value& jv, value& v ) {
+  v = jv;
+  return jv;
+}
 
-} } }
+} // namespace json
 

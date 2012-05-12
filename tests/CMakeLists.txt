@@ -13,5 +13,5 @@ IF(UNIX)
     set( libraries ${libraries} pthread )
 ENDIF(UNIX)
 
-add_executable( rpc_raw  raw.cpp  )
-target_link_libraries( rpc_raw ${libraries} )
+#add_executable( rpc_raw  raw.cpp  )
+#target_link_libraries( rpc_raw ${libraries} )

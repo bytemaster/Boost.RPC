@@ -28,6 +28,7 @@
 */
 
 #include <iostream>
+#include <sstream>
 
 namespace boost { namespace rpc {
 
@@ -44,6 +45,12 @@ static inline bool is_base64(unsigned char c) {
   return (isalnum(c) || (c == '+') || (c == '/'));
 }
 
+inline std::string base64_encode(unsigned char const* bytes_to_encode, unsigned int in_len);
+
+inline std::string base64_encode( const std::string& enc ) {
+  char const* s = enc.c_str();
+  return base64_encode( (unsigned char const*)s, enc.size() );
+}
 inline std::string base64_encode(unsigned char const* bytes_to_encode, unsigned int in_len) {
 
   std::string ret;
@@ -133,5 +140,27 @@ inline std::string base64_decode(std::string const& encoded_string) {
 }
 
 
-} } // namespace boost::rpc
-#endif // _BOOST_RPC_BASE64_HPP
+template<typename T>
+std::string to_base64( const T& v ) {
+  std::stringstream ss; ss << v;
+  return base64_encode(ss.str());
+}
+
+template<typename T>
+T from_base64( const std::string& str ) {
+  T v;
+  std::stringstream ss(base64_decode( str ));
+  ss >> v;
+  return v;
+}
+
+template<typename T>
+void from_base64( const std::string& b64, T& v ) {
+  std::stringstream ss(base64_decode( b64 ));
+  ss >> v;
+}
+
+
+
+} }  // namespace boost::rpc
+#endif // _SCRYPT_BASE64_HPP

@@ -12,8 +12,8 @@ IF(UNIX)
     set( libraries ${libraries} pthread )
 ENDIF(UNIX)
 
-add_executable( jsonv  jsonv.cpp  )
-target_link_libraries( jsonv ${libraries} )
+#add_executable( jsonv  jsonv.cpp  )
+#target_link_libraries( jsonv ${libraries} )
 
 add_executable( rpcs  rpc_server.cpp  )
 target_link_libraries( rpcs ${libraries} )
