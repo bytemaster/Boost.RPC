@@ -132,22 +132,24 @@ struct client_member<R(Class::*)(PARAM_TYPES)const> : public detail::client_inte
     return (*this)( boost::fusion::make_vector(PARAM_NAMES) );
   }
   inline future_type operator() ( const fused_params& fp )const {
-    //slog( "%1% %2% %3%",m_service_type, m_method_id,  m_con.get() );
     return m_ci->call<result_type,fused_params>( m_method_id, fp );
+  }
+  inline void notice( const fused_params& fp )const {
+    return m_ci->notice( m_method_id, fp );
   }
 };
 
 template<typename R, typename Class  BOOST_PP_COMMA_IF(n) PARAM_TYPE_NAMES>
 struct client_member<R(Class::*)(PARAM_TYPES)>  : public detail::client_interface::client_member_base
 {
-  typedef typename boost::reflect::adapt_void<R>::result_type                result_type;
-  typedef boost::cmt::future<result_type>                    future_type;
-  typedef client_member                                      self_type;
-  typedef boost::fusion::vector<PARAM_TYPES>                 fused_params;
-  typedef boost::function_traits<result_type(PARAM_TYPES)>   traits;
-  typedef boost::function<result_type(const fused_params&)>  delegate_type;
-  static const bool                                          is_const  = false;
-  static const bool                                          is_signal = false;
+  typedef typename boost::reflect::adapt_void<R>::result_type   result_type;
+  typedef boost::cmt::future<result_type>                       future_type;
+  typedef client_member                                         self_type;
+  typedef boost::fusion::vector<PARAM_TYPES>                    fused_params;
+  typedef boost::function_traits<result_type(PARAM_TYPES)>      traits;
+  typedef boost::function<result_type(const fused_params&)>     delegate_type;
+  static const bool                                             is_const  = false;
+  static const bool                                             is_signal = false;
 
   // boost::result_of
   typedef typename boost::remove_pointer<result_type(*)(PARAM_TYPES)>::type signature;
@@ -158,6 +160,9 @@ struct client_member<R(Class::*)(PARAM_TYPES)>  : public detail::client_interfac
   inline future_type operator() ( const fused_params& fp ) {
     //slog( "%1% %2% %3%",m_service_type, m_method_id,  m_con.get() );
     return m_ci->call<result_type,fused_params>( m_method_id, fp );
+  }
+  inline void notice( const fused_params& fp )const {
+    return m_ci->notice( m_method_id, fp );
   }
 
 };

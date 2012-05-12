@@ -22,6 +22,12 @@ class CalculatorServer
 
         double result()const { return m_result; }
 
+        double npt( const named_param_test& p ) {
+          int sum = 0;
+          if( p.x ) sum += *p.x;
+          if( p.y ) sum += -1 * *p.y;
+          return sum;
+        }
     private:
         double m_result;
 };

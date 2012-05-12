@@ -51,10 +51,15 @@ namespace boost { namespace rpc { namespace json {
         if( contains(key) ) return (*this)[key];
         return key;
        }
+       bool is_array()const;
+       bool is_object()const;
+
+       bool operator == ( const null_t& t )const;
        inline bool   operator ==( const std::string& v )const { 
           return boost::get<const std::string&>(val) == v;
        }
        bool contains( const std::string& key )const;
+
 
        value& operator = ( int64_t v );
        value& operator = ( uint64_t v );
@@ -62,6 +67,7 @@ namespace boost { namespace rpc { namespace json {
        value& operator = ( bool v );
        value& operator = ( null_t v );
        value& operator = ( const std::string& v );
+       value& operator = ( const char* v ) { return *this = std::string(v); }
        value& operator = ( const json::object& v );
        value& operator = ( const json::array& v );
 

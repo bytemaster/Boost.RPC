@@ -15,6 +15,12 @@ int main2( int argc, char** argv ) {
       boost::rpc::json::client<Calculator> calc( argv[1], boost::lexical_cast<int>(argv[2]) );  
       std::cerr<<"Result: "<<(double)calc->add(5.55)<<std::endl;
       std::cerr<<"Result: "<<(double)calc->add(5.55)<<std::endl;
+      calc->add.notice(5.55);
+      std::cerr<<"Result: "<<(double)calc->result()<<std::endl;
+
+      std::cerr<< calc->npt( named_param_test( 1 ) ) <<std::endl;
+      std::cerr<< calc->npt( named_param_test( 1,2 ) ) <<std::endl;
+      std::cerr<< calc->npt( named_param_test() ) <<std::endl;
 
 
     } catch ( const boost::exception& e ) {

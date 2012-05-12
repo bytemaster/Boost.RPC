@@ -13,8 +13,13 @@ class client_base {
     
 
     template<typename R, typename ParamSeq>
-    cmt::future<R> call( const std::string& method, const ParamSeq& param ) {
+    inline cmt::future<R> call( const std::string& method, const ParamSeq& param ) {
       return m_con->call<R,ParamSeq>( method, param );
+    }
+
+    template<typename ParamSeq>
+    inline void notice( const std::string& method, const ParamSeq& param ) {
+      return m_con->notice( method, param );
     }
 
   protected:

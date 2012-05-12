@@ -1,23 +1,50 @@
 #ifndef _BOOST_RPC_JSON_CONNECTION_HPP_
 #define _BOOST_RPC_JSON_CONNECTION_HPP_
 #include <boost/rpc/json/value_io.hpp>
+#include <boost/rpc/error.hpp>
 #include <boost/function.hpp>
 #include <vector>
 #include <boost/cmt/thread.hpp>
 #include <boost/signals.hpp>
+#include <boost/fusion/include/size.hpp>
+#include <boost/fusion/include/front.hpp>
+#include <boost/fusion/support/deduce.hpp>
+#include <boost/mpl/if.hpp>
+
 
 namespace boost { namespace rpc { namespace json {
   typedef boost::function<json::value( const json::value& param )> rpc_method;
+  struct named_parameters{};
 
   namespace detail {
-     template<typename Seq, typename Functor>
+
+     /**
+      * If Seq size is 1 and it inherits from named_parameters then Seq will be
+      * sent as named parameters.
+      */
+     template<typename Seq>
+     struct has_named_params : 
+        public boost::mpl::if_c<
+                 (boost::is_base_of<named_parameters, 
+                                    typename boost::fusion::traits::deduce<
+                                        typename boost::fusion::result_of::front<Seq>::type >::type>::value 
+                 && (1 ==  boost::fusion::result_of::size<Seq>::value))
+        , boost::true_type, boost::false_type>::type 
+     { };
+
+     template<typename Seq, typename Functor,bool NamedParams>
      struct rpc_recv_functor {
        rpc_recv_functor( Functor f )
-       :m_func(f){}
+       :m_func(f){ }
 
        json::value operator()( const json::value& param ) {
          Seq paramv;
-         json::io::unpack( param, paramv );
+         if( boost::fusion::size(paramv) ) {
+            if( !param.is_array() ) {
+              BOOST_RPC_THROW( "param value is not an array" );
+            }
+            json::io::unpack( param, paramv );
+         }
          json::value rtn;
          json::io::pack( rtn, m_func(paramv) );
          return rtn;
@@ -25,6 +52,43 @@ namespace boost { namespace rpc { namespace json {
 
        Functor m_func;
      };
+
+     /**
+      * 
+      */
+     template<typename Seq, typename Functor>
+     struct rpc_recv_functor<Seq,Functor,true> {
+       rpc_recv_functor( Functor f )
+       :m_func(f){  }
+
+       json::value operator()( const json::value& param ) {
+         Seq paramv;
+         if( param.is_array() ) {
+            json::io::unpack( param, paramv );
+         }
+         else if( param.is_object() ) {
+            json::io::unpack( param, boost::fusion::at_c<0>(paramv) );
+         } else {
+            BOOST_RPC_THROW( "param value is not an object or array" );
+         }
+         json::value rtn;
+         json::io::pack( rtn, m_func(paramv) );
+         return rtn;
+       }
+
+       Functor m_func;
+     };
+     
+     // change how params are packed based upon whether or not they are named params
+     template<typename Seq>
+     void pack_params( json::value& v, const Seq& s, const boost::true_type& is_named ) {
+            json::io::pack(v, boost::fusion::at_c<0>(s));
+     }
+     template<typename Seq>
+     void pack_params( json::value& v, const Seq& s, const boost::false_type& is_named ) {
+            json::io::pack(v,s);
+     }
+
   }  // namespace detail
 
   /**
@@ -55,11 +119,32 @@ namespace boost { namespace rpc { namespace json {
         json::value msg;
         msg["method"] = method_name;
         msg["id"]     = next_method_id();
-        json::io::pack(msg["params"],param);
+        // TODO: transform functor params...
+
+        if( boost::fusion::size(param ) )
+          detail::pack_params( msg["params"], param, typename detail::has_named_params<ParamSeq>::type() );
 
         typename pending_result_impl<R>::ptr pr = boost::make_shared<pending_result_impl<R> >(); 
+
+        msg["jsonrpc"] = "2.0";
         send( msg, boost::static_pointer_cast<pending_result>(pr) );
         return pr->prom;
+      }
+      template<typename ParamSeq>
+      void notice( const std::string& method_name, const ParamSeq& param ) {
+        json::value msg;
+        msg["method"] = method_name;
+        // TODO: JSON RCP 1.0 sets this to 'null' instead of being empty
+        //msg["id"]     = next_method_id();
+
+        // TODO: transform functor params...
+         
+        // TODO: JSON RPC 1.0 does not allow empty param
+        if( boost::fusion::size(param ) )
+          detail::pack_params( msg["params"], param, typename detail::has_named_params<ParamSeq>::type() );
+
+        msg["jsonrpc"] = "2.0";
+        send( msg );
       }
 
       boost::signal<void()> closed;

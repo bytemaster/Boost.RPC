@@ -71,7 +71,8 @@ namespace boost { namespace rpc { namespace json {
         template<typename Member, typename VTable, Member VTable::*m>
         void operator()(const char* name )const  {
              typedef typename boost::fusion::traits::deduce_sequence<typename Member::fused_params>::type param_type;
-             m_con.add_method( name, detail::rpc_recv_functor<param_type, Member&>( (*m_aptr).*m ) );
+             m_con.add_method( name, detail::rpc_recv_functor<param_type, Member&, 
+                              detail::has_named_params<typename Member::fused_params>::value >( (*m_aptr).*m ) );
         }
         rpc::json::connection&                   m_con;
         boost::reflect::any_ptr<InterfaceType>& m_aptr;
