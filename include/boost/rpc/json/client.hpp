@@ -1,7 +1,7 @@
 #ifndef _BOOST_RPC_JSON_CLIENT_HPP_
 #define _BOOST_RPC_JSON_CLIENT_HPP_
 #include <boost/reflect/any_ptr.hpp>
-#include <boost/rpc/client_interface.hpp>
+#include <boost/rpc/json/client_interface.hpp>
 #include <boost/rpc/json/client_base.hpp>
 
 namespace boost { namespace rpc {  namespace json {

@@ -17,6 +17,8 @@ class tcp_connection : public boost::rpc::json::connection {
       tcp_connection( const cmt::asio::tcp::socket::ptr& sock,
                       cmt::thread* t = &cmt::thread::current() );
 
+
+      tcp_connection( const std::string& host, uint16_t port, cmt::thread* t = &cmt::thread::current() );
       virtual ~tcp_connection();
 
   protected:

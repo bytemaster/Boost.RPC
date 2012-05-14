@@ -85,7 +85,6 @@
 
 
   #define PARAM_NAME(z,n,type)         BOOST_PP_CAT(a,n)
-  #define PARAM_PLACE_HOLDER(z,n,type) BOOST_PP_CAT(_,BOOST_PP_ADD(n,1) )
   #define PARAM_TYPE_NAME(z,n,type)   BOOST_PP_CAT(typename A,n)
   #define PARAM_TYPE(z,n,type)   BOOST_PP_CAT(A,n)
   #define PARAM_ARG(z,n,type)     PARAM_TYPE(z,n,type) PARAM_NAME(z,n,type)
@@ -96,7 +95,7 @@
 
 #       include <boost/preprocessor/iteration/iterate.hpp>
 #       define BOOST_PP_ITERATION_LIMITS (0, BOOST_CLIENT_IMPL_SIZE -1 )
-#       define BOOST_PP_FILENAME_1 <boost/rpc/client_interface.hpp>
+#       define BOOST_PP_FILENAME_1 <boost/rpc/json/client_interface.hpp>
 #       include BOOST_PP_ITERATE()
 
   #undef PARAM_NAME
@@ -110,7 +109,6 @@
 
 #define n BOOST_PP_ITERATION()
 #define PARAM_NAMES          BOOST_PP_ENUM(n,PARAM_NAME,A) // name_N
-#define PARAM_PLACE_HOLDERS  BOOST_PP_ENUM_TRAILING(n,PARAM_PLACE_HOLDER,A) // _(N+1)
 #define PARAM_ARGS           BOOST_PP_ENUM(n,PARAM_ARG,A) // TYPE_N name_N
 #define PARAM_TYPE_NAMES     BOOST_PP_ENUM(n,PARAM_TYPE_NAME,A) // typename TYPE_N
 #define PARAM_TYPES          BOOST_PP_ENUM(n,PARAM_TYPE,A) // TYPE_N
@@ -132,10 +130,10 @@ struct client_member<R(Class::*)(PARAM_TYPES)const> : public detail::client_inte
     return (*this)( boost::fusion::make_vector(PARAM_NAMES) );
   }
   inline future_type operator() ( const fused_params& fp )const {
-    return m_ci->call<result_type,fused_params>( m_method_id, fp );
+    return m_ci->call_fused<result_type,fused_params>( m_method_id, fp );
   }
   inline void notice( const fused_params& fp )const {
-    return m_ci->notice( m_method_id, fp );
+    return m_ci->notice_fused( m_method_id, fp );
   }
 };
 
@@ -159,10 +157,10 @@ struct client_member<R(Class::*)(PARAM_TYPES)>  : public detail::client_interfac
   }
   inline future_type operator() ( const fused_params& fp ) {
     //slog( "%1% %2% %3%",m_service_type, m_method_id,  m_con.get() );
-    return m_ci->call<result_type,fused_params>( m_method_id, fp );
+    return m_ci->call_fused<result_type,fused_params>( m_method_id, fp );
   }
   inline void notice( const fused_params& fp )const {
-    return m_ci->notice( m_method_id, fp );
+    return m_ci->notice_fused( m_method_id, fp );
   }
 
 };
@@ -170,7 +168,6 @@ struct client_member<R(Class::*)(PARAM_TYPES)>  : public detail::client_interfac
 
 #undef n
 #undef PARAM_NAMES         
-#undef PARAM_PLACE_HOLDERS
 #undef PARAM_ARGS        
 #undef PARAM_TYPE_NAMES 
 #undef PARAM_TYPES     

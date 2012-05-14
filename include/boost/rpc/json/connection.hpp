@@ -10,6 +10,7 @@
 #include <boost/fusion/include/front.hpp>
 #include <boost/fusion/support/deduce.hpp>
 #include <boost/mpl/if.hpp>
+#include <boost/fusion/include/make_vector.hpp>
 
 
 namespace boost { namespace rpc { namespace json {
@@ -114,8 +115,30 @@ namespace boost { namespace rpc { namespace json {
 
       void add_method( const std::string& mid, const rpc_method& m );
 
+
+      #include <boost/rpc/json/detail/call_methods.hpp>
+
+
+      template<typename ParamSeq>
+      boost::cmt::future<json::value> call_fused( const std::string& method_name, const ParamSeq& param ) {
+        json::value msg;
+        msg["method"] = method_name;
+        msg["id"]     = next_method_id();
+        // TODO: transform functor params...
+
+        if( boost::fusion::size(param ) )
+          detail::pack_params( msg["params"], param, typename detail::has_named_params<ParamSeq>::type() );
+
+        typename pending_result_impl<json::value>::ptr pr = boost::make_shared<pending_result_impl<json::value> >(); 
+
+        msg["jsonrpc"] = "2.0";
+        send( msg, boost::static_pointer_cast<pending_result>(pr) );
+        return pr->prom;
+      }
+
+
       template<typename R, typename ParamSeq>
-      boost::cmt::future<R> call( const std::string& method_name, const ParamSeq& param ) {
+      boost::cmt::future<R> call_fused( const std::string& method_name, const ParamSeq& param ) {
         json::value msg;
         msg["method"] = method_name;
         msg["id"]     = next_method_id();
@@ -131,7 +154,7 @@ namespace boost { namespace rpc { namespace json {
         return pr->prom;
       }
       template<typename ParamSeq>
-      void notice( const std::string& method_name, const ParamSeq& param ) {
+      void notice_fused( const std::string& method_name, const ParamSeq& param ) {
         json::value msg;
         msg["method"] = method_name;
         // TODO: JSON RCP 1.0 sets this to 'null' instead of being empty

@@ -13,13 +13,13 @@ class client_base {
     
 
     template<typename R, typename ParamSeq>
-    inline cmt::future<R> call( const std::string& method, const ParamSeq& param ) {
-      return m_con->call<R,ParamSeq>( method, param );
+    inline cmt::future<R> call_fused( const std::string& method, const ParamSeq& param ) {
+      return m_con->call_fused<R,ParamSeq>( method, param );
     }
 
     template<typename ParamSeq>
-    inline void notice( const std::string& method, const ParamSeq& param ) {
-      return m_con->notice( method, param );
+    inline void notice_fused( const std::string& method, const ParamSeq& param ) {
+      m_con->notice_fused( method, param );
     }
 
   protected:
