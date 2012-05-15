@@ -9,14 +9,22 @@
 #include <boost/fusion/include/size.hpp>
 #include <boost/fusion/include/front.hpp>
 #include <boost/fusion/support/deduce.hpp>
+#include <boost/fusion/include/make_fused_function_object.hpp>
 #include <boost/mpl/if.hpp>
+#include <boost/fusion/include/mpl.hpp>
+#include <boost/fusion/adapted/mpl.hpp>
 #include <boost/fusion/include/make_vector.hpp>
+#include <boost/function_types/parameter_types.hpp>
+#include <boost/function_types/result_type.hpp>
+#include <boost/fusion/include/make_unfused.hpp>
 
 
 namespace boost { namespace rpc { namespace json {
-  typedef boost::function<json::value( const json::value& param )> rpc_method;
-  struct named_parameters{};
+  class connection;
+  typedef boost::function<json::value( connection&, const json::value& param )> rpc_method;
 
+  struct named_parameters{};
+  // namespace detail
   namespace detail {
 
      /**
@@ -32,65 +40,7 @@ namespace boost { namespace rpc { namespace json {
                  && (1 ==  boost::fusion::result_of::size<Seq>::value))
         , boost::true_type, boost::false_type>::type 
      { };
-
-     template<typename Seq, typename Functor,bool NamedParams>
-     struct rpc_recv_functor {
-       rpc_recv_functor( Functor f )
-       :m_func(f){ }
-
-       json::value operator()( const json::value& param ) {
-         Seq paramv;
-         if( boost::fusion::size(paramv) ) {
-            if( !param.is_array() ) {
-              BOOST_RPC_THROW( "param value is not an array" );
-            }
-            json::io::unpack( param, paramv );
-         }
-         json::value rtn;
-         json::io::pack( rtn, m_func(paramv) );
-         return rtn;
-       }
-
-       Functor m_func;
-     };
-
-     /**
-      * 
-      */
-     template<typename Seq, typename Functor>
-     struct rpc_recv_functor<Seq,Functor,true> {
-       rpc_recv_functor( Functor f )
-       :m_func(f){  }
-
-       json::value operator()( const json::value& param ) {
-         Seq paramv;
-         if( param.is_array() ) {
-            json::io::unpack( param, paramv );
-         }
-         else if( param.is_object() ) {
-            json::io::unpack( param, boost::fusion::at_c<0>(paramv) );
-         } else {
-            BOOST_RPC_THROW( "param value is not an object or array" );
-         }
-         json::value rtn;
-         json::io::pack( rtn, m_func(paramv) );
-         return rtn;
-       }
-
-       Functor m_func;
-     };
-     
-     // change how params are packed based upon whether or not they are named params
-     template<typename Seq>
-     void pack_params( json::value& v, const Seq& s, const boost::true_type& is_named ) {
-            json::io::pack(v, boost::fusion::at_c<0>(s));
-     }
-     template<typename Seq>
-     void pack_params( json::value& v, const Seq& s, const boost::false_type& is_named ) {
-            json::io::pack(v,s);
-     }
-
-  }  // namespace detail
+  }
 
   /**
    *  Manages RPC call state including:
@@ -102,6 +52,38 @@ namespace boost { namespace rpc { namespace json {
    */
   class connection : public boost::enable_shared_from_this<connection> {
     public:
+      /**
+       *  When packing parameters, intercept any boost function and
+       *  create a callback for it.
+       */
+      struct function_filter {
+         function_filter( connection& c ):m_con(c){}
+
+         template<typename T>
+         const T& operator()( const T& v ) { return v; }
+
+         template<typename T>
+         inline void operator()( const json::value& j, T& v ) { 
+           json::io::unpack( *this, j, v ); 
+         }
+         template<typename Signature>
+         inline void operator()( const json::value& j, boost::function<Signature> & v ) { 
+             typedef typename boost::function_types::parameter_types<Signature>::type  mpl_param_types;
+             typedef typename boost::fusion::result_of::as_vector<mpl_param_types>::type param_types;
+             typedef typename boost::function_types::result_type<Signature>::type  R;
+
+             cmt::future<R> (connection::*cf)(const std::string&, const param_types&) = &connection::call_fused;
+             v = boost::fusion::make_unfused(boost::bind( cf, &m_con, (const std::string&)j, _1 ) );
+           //return unpack( *this, j, v ); 
+         }
+
+         template<typename Signature>
+         std::string operator()( const boost::function<Signature>& f ); 
+
+         private:
+             connection& m_con;
+      };
+      
       typedef boost::shared_ptr<connection> ptr;
       typedef boost::weak_ptr<connection>   wptr;
 
@@ -115,6 +97,9 @@ namespace boost { namespace rpc { namespace json {
 
       void add_method( const std::string& mid, const rpc_method& m );
 
+      /** The connection will generate and return a method name **/
+      std::string add_method( const rpc_method& m );
+
 
       #include <boost/rpc/json/detail/call_methods.hpp>
 
@@ -127,7 +112,7 @@ namespace boost { namespace rpc { namespace json {
         // TODO: transform functor params...
 
         if( boost::fusion::size(param ) )
-          detail::pack_params( msg["params"], param, typename detail::has_named_params<ParamSeq>::type() );
+          pack_params( msg["params"], param, typename detail::has_named_params<ParamSeq>::type() );
 
         typename pending_result_impl<json::value>::ptr pr = boost::make_shared<pending_result_impl<json::value> >(); 
 
@@ -145,7 +130,7 @@ namespace boost { namespace rpc { namespace json {
         // TODO: transform functor params...
 
         if( boost::fusion::size(param ) )
-          detail::pack_params( msg["params"], param, typename detail::has_named_params<ParamSeq>::type() );
+          pack_params( msg["params"], param, typename detail::has_named_params<ParamSeq>::type() );
 
         typename pending_result_impl<R>::ptr pr = boost::make_shared<pending_result_impl<R> >(); 
 
@@ -164,7 +149,7 @@ namespace boost { namespace rpc { namespace json {
          
         // TODO: JSON RPC 1.0 does not allow empty param
         if( boost::fusion::size(param ) )
-          detail::pack_params( msg["params"], param, typename detail::has_named_params<ParamSeq>::type() );
+          pack_params( msg["params"], param, typename detail::has_named_params<ParamSeq>::type() );
 
         msg["jsonrpc"] = "2.0";
         send( msg );
@@ -173,6 +158,19 @@ namespace boost { namespace rpc { namespace json {
       boost::signal<void()> closed;
 
     protected:
+     // change how params are packed based upon whether or not they are named params
+     template<typename Seq>
+     void pack_params( json::value& v, const Seq& s, const boost::true_type& is_named ) {
+        function_filter f(*this);
+        json::io::pack(f, v, boost::fusion::at_c<0>(s));
+     }
+     template<typename Seq>
+     void pack_params( json::value& v, const Seq& s, const boost::false_type& is_named ) {
+        function_filter f(*this);
+        json::io::pack(f, v,s);
+     }
+
+
       virtual void send( const json::value& msg ) = 0;
 
       void break_promises();
@@ -185,7 +183,7 @@ namespace boost { namespace rpc { namespace json {
         public:
           typedef boost::shared_ptr<pending_result> ptr;
           virtual ~pending_result(){}
-          virtual void handle_result( const json::value& data )       = 0;
+          virtual void handle_result( connection& c, const json::value& data )       = 0;
           virtual void handle_error( const boost::exception_ptr& e  ) = 0;
       };
 
@@ -207,9 +205,10 @@ namespace boost { namespace rpc { namespace json {
             }
           }
           typedef boost::shared_ptr<pending_result_impl> ptr;
-          virtual void handle_result( const json::value& data ) {
+          virtual void handle_result( connection& c, const json::value& data ) {
             R value;
-            json::io::unpack( data, value );
+            function_filter f(c);
+            json::io::unpack( f, data, value );
             prom->set_value( value );
           }
           virtual void handle_error( const boost::exception_ptr& e  ) {
@@ -219,6 +218,69 @@ namespace boost { namespace rpc { namespace json {
       };
       class connection_private* my;
   };
+
+  namespace detail {
+
+     template<typename Seq, typename Functor,bool NamedParams>
+     struct rpc_recv_functor {
+       rpc_recv_functor( Functor f )
+       :m_func(f){ }
+
+       json::value operator()( json::connection& c, const json::value& param ) {
+         Seq paramv;
+         if( boost::fusion::size(paramv) ) {
+            if( !param.is_array() ) {
+              BOOST_RPC_THROW( "param value is not an array" );
+            }
+            connection::function_filter f(c);
+            json::io::unpack( f, param, paramv );
+         }
+         json::value rtn;
+         connection::function_filter f(c);
+         json::io::pack( f, rtn, m_func(paramv) );
+         return rtn;
+       }
+
+       Functor m_func;
+     };
+
+     /**
+      * 
+      */
+     template<typename Seq, typename Functor>
+     struct rpc_recv_functor<Seq,Functor,true> {
+       rpc_recv_functor( Functor f )
+       :m_func(f){  }
+
+       json::value operator()( json::connection& c, const json::value& param ) {
+         Seq paramv;
+         if( param.is_array() ) {
+            json::io::unpack( param, paramv );
+         }
+         else if( param.is_object() ) {
+            connection::function_filter f(c);
+            json::io::unpack( f, param, boost::fusion::at_c<0>(paramv) );
+         } else {
+            BOOST_RPC_THROW( "param value is not an object or array" );
+         }
+         json::value rtn;
+         connection::function_filter f(c);
+         json::io::pack( f, rtn, m_func(paramv) );
+         return rtn;
+       }
+
+       Functor m_func;
+     };
+  }
+
+
+  template<typename Signature>
+  std::string connection::function_filter::operator()( const boost::function<Signature>& f ) {
+     typedef typename boost::function_types::parameter_types<Signature>::type  mpl_param_types;
+     typedef typename boost::fusion::result_of::as_vector<mpl_param_types>::type param_types;
+     typedef typename boost::function_types::result_type<Signature>::type  R;
+     return m_con.add_method( detail::rpc_recv_functor<param_types,boost::function<R(param_types)>,false>( boost::fusion::make_fused_function_object(f) ) );
+  }
 
 } } } // boost::rpc::json
 

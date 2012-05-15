@@ -30,12 +30,14 @@ struct Calculator : Service
     double mult( double v );           
     double div( double v );           
 
+    void   set_callback( int c, const boost::function<std::string(int)>& cb );
+
     double npt( const named_param_test& p );
 
     double result()const;
 };
 
 BOOST_REFLECT_ANY( Service, (name)(exit) )
-BOOST_REFLECT_ANY_DERIVED( Calculator, (Service), (add)(add2)(sub)(mult)(div)(result)(npt) )
+BOOST_REFLECT_ANY_DERIVED( Calculator, (Service), (add)(add2)(sub)(mult)(div)(result)(npt)(set_callback) )
 
 #endif // _BOOST_REFLECT_CALCULATOR_HPP

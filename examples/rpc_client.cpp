@@ -6,6 +6,10 @@
 #include <boost/exception/diagnostic_information.hpp>
 #include <boost/rpc/json/tcp_connection.hpp>
 
+std::string test_callback( int c ) {
+  std::cerr<<"test_callback "<<c<<std::endl;
+  return "Hello World";
+}
 
 int main( int argc, char** argv ) {
     if( argc <= 2 ) {
@@ -38,6 +42,8 @@ int main( int argc, char** argv ) {
       con.notice_fused( "add", boost::fusion::make_vector(6.66) );
 
       std::cerr<<"Result: "<<(double)con.call( "result" ).wait()<<std::endl;
+
+      calc->set_callback( 6, test_callback ).wait();
 
     } catch ( const boost::exception& e ) {
         std::cerr << boost::diagnostic_information(e) << std::endl;

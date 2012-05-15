@@ -22,6 +22,10 @@ class CalculatorServer
 
         double result()const { return m_result; }
 
+        void   set_callback(int c,  const boost::function<std::string(int)>& cb ) {
+          m_cb = cb;
+          if( m_cb ) std::cerr<<"CB Result: "<<m_cb( 3*c )<<"\n";
+        }
         double npt( const named_param_test& p ) {
           int sum = 0;
           if( p.x ) sum += *p.x;
@@ -29,6 +33,7 @@ class CalculatorServer
           return sum;
         }
     private:
+      boost::function<std::string(int)> m_cb;
         double m_result;
 };
 
