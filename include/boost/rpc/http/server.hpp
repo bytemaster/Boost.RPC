@@ -64,8 +64,8 @@ namespace boost { namespace rpc { namespace http {
       /// The reply to be sent back to the client.
       boost::shared_ptr<reply> reply_;
 
+      /// All requests on this server must occur in the same strand
       boost::shared_ptr<boost::asio::strand>  strand_;
-      boost::function<void(boost::system::error_code,std::size_t)> this_strand;
   };
 
 } } }// boost::rpc::http

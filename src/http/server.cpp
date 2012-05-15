@@ -20,7 +20,6 @@ server::server( const std::string& address, const std::string& port,
   : request_handler_(request_handler)
 {
   strand_.reset( new boost::asio::strand( boost::cmt::asio::default_io_service() ) );
-  this_strand = strand_->wrap( strand_->wrap(*this) ); 
   tcp::resolver resolver(boost::cmt::asio::default_io_service() );
   tcp::resolver::query query(address, port);
   acceptor_.reset(new tcp::acceptor(boost::cmt::asio::default_io_service(), *resolver.resolve(query)));
