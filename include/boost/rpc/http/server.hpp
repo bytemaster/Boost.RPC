@@ -29,8 +29,7 @@ namespace boost { namespace rpc { namespace http {
     public:
       /// Construct the server to listen on the specified TCP address and port, and
       /// serve up files from the given directory.
-      explicit server(boost::asio::io_service& io_service,
-          const std::string& address, const std::string& port,
+      explicit server( const std::string& address, const std::string& port,
           boost::function<void(const request&, reply&)> request_handler);
 
       /// Perform work associated with the server.
@@ -64,6 +63,9 @@ namespace boost { namespace rpc { namespace http {
 
       /// The reply to be sent back to the client.
       boost::shared_ptr<reply> reply_;
+
+      boost::shared_ptr<boost::asio::strand>  strand_;
+      boost::function<void(boost::system::error_code,std::size_t)> this_strand;
   };
 
 } } }// boost::rpc::http

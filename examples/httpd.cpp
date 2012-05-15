@@ -33,7 +33,7 @@ int main(int argc, char* argv[])
     boost::asio::io_service io_service;
 
     // Launch the initial server coroutine.
-    boost::rpc::http::server(io_service, argv[1], argv[2],
+    boost::rpc::http::server( argv[1], argv[2],
         boost::rpc::http::file_handler(argv[3]))();
 
     // Wait for signals indicating time to shut down.

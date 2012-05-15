@@ -1,5 +1,5 @@
-#ifndef _BOOST_RPC_TCP_CONNECTION_HPP_
-#define _BOOST_RPC_TCP_CONNECTION_HPP_
+#ifndef _BOOST_RPC_JSON_TCP_CONNECTION_HPP_
+#define _BOOST_RPC_JSON_TCP_CONNECTION_HPP_
 #include <boost/rpc/json/connection.hpp>
 #include <boost/cmt/asio/tcp/socket.hpp>
 #include <boost/asio.hpp>

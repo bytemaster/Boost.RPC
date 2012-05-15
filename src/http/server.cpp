@@ -11,17 +11,19 @@
 #include <boost/rpc/http/server.hpp>
 #include <boost/rpc/http/request.hpp>
 #include <boost/rpc/http/reply.hpp>
+#include <boost/cmt/asio.hpp>
 
 namespace boost { namespace rpc { namespace http {
 
-server::server(boost::asio::io_service& io_service,
-    const std::string& address, const std::string& port,
+server::server( const std::string& address, const std::string& port,
     boost::function<void(const request&, reply&)> request_handler)
   : request_handler_(request_handler)
 {
-  tcp::resolver resolver(io_service);
+  strand_.reset( new boost::asio::strand( boost::cmt::asio::default_io_service() ) );
+  this_strand = strand_->wrap( strand_->wrap(*this) ); 
+  tcp::resolver resolver(boost::cmt::asio::default_io_service() );
   tcp::resolver::query query(address, port);
-  acceptor_.reset(new tcp::acceptor(io_service, *resolver.resolve(query)));
+  acceptor_.reset(new tcp::acceptor(boost::cmt::asio::default_io_service(), *resolver.resolve(query)));
 }
 
 #include <boost/rpc/http/yield.hpp> // Enable the pseudo-keywords reenter, yield and fork.
@@ -50,7 +52,7 @@ void server::operator()(boost::system::error_code ec, std::size_t length)
         // operation. When the asynchronous operation completes, the io_service
         // invokes the function call operator, we "reenter" the coroutine, and
         // then control resumes at the following line.
-        yield acceptor_->async_accept(*socket_, *this);
+        yield acceptor_->async_accept(*socket_, strand_->wrap(*this));
 
         // We "fork" by cloning a new server coroutine to handle the connection.
         // After forking we have a parent coroutine and a child coroutine. Both
@@ -73,7 +75,7 @@ void server::operator()(boost::system::error_code ec, std::size_t length)
         // Receive some more data. When control resumes at the following line,
         // the ec and length parameters reflect the result of the asynchronous
         // operation.
-        yield socket_->async_read_some(boost::asio::buffer(*buffer_), *this);
+        yield socket_->async_read_some(boost::asio::buffer(*buffer_), strand_->wrap(*this));
 
         // Parse the data we just received.
         boost::tie(valid_request_, boost::tuples::ignore)
@@ -99,7 +101,7 @@ void server::operator()(boost::system::error_code ec, std::size_t length)
       }
 
       // Send the reply back to the client.
-      yield boost::asio::async_write(*socket_, reply_->to_buffers(), *this);
+      yield boost::asio::async_write(*socket_, reply_->to_buffers(), strand_->wrap(*this));
 
       // Initiate graceful connection closure.
       socket_->shutdown(tcp::socket::shutdown_both, ec);
