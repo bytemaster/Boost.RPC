@@ -16,6 +16,12 @@ SET( sources
         src/json/client_base.cpp
         src/json/value.cpp
         src/json/tcp_server.cpp
+
+        src/http/file_handler.cpp
+        src/http/mime_types.cpp
+        src/http/reply.cpp
+        src/http/request_parser.cpp
+        src/http/server.cpp
              )
 
 install( DIRECTORY include/boost/rpc DESTINATION include/boost )

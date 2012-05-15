@@ -21,6 +21,9 @@ target_link_libraries( rpcs ${libraries} )
 add_executable( rpcc  rpc_client.cpp  )
 target_link_libraries( rpcc ${libraries} )
 
+add_executable( httpd  httpd.cpp  )
+target_link_libraries( httpd ${libraries} )
+
 #add_executable( jsonc  json_client.cpp  )
 #target_link_libraries( jsonc ${libraries} )
 #add_executable( jsons  json_echo_server.cpp  )
