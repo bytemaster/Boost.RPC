@@ -1,58 +1,47 @@
-//
-// main.cpp
-// ~~~~~~~~
-//
-// Copyright (c) 2003-2012 Christopher M. Kohlhoff (chris at kohlhoff dot com)
-//
-// Distributed under the Boost Software License, Version 1.0. (See accompanying
-// file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
-//
+//            Copyright (c) Glyn Matthews 2010.
+// Distributed under the Boost Software License, Version 1.0.
+//    (See accompanying file LICENSE_1_0.txt or copy at
+//          http://www.boost.org/LICENSE_1_0.txt)
 
+
+//[ hello_world_client_main
+/*`
+  This is a part of the 'Hello World' example.  We create a client
+  object and make a single HTTP request.  If we use make this request
+  to the `hello_world_server`, then the output is simply "Hello,
+  World!".
+ */
+#include <boost/network/protocol/http/client.hpp>
 #include <iostream>
-#include <boost/asio.hpp>
-#include <boost/bind.hpp>
-#include <signal.h>
-#include <boost/rpc/http/server.hpp>
-#include <boost/rpc/http/file_handler.hpp>
 
-int main(int argc, char* argv[])
-{
-  try
-  {
-    // Check command line arguments.
-    if (argc != 4)
-    {
-      std::cerr << "Usage: http_server <address> <port> <doc_root>\n";
-      std::cerr << "  For IPv4, try:\n";
-      std::cerr << "    receiver 0.0.0.0 80 .\n";
-      std::cerr << "  For IPv6, try:\n";
-      std::cerr << "    receiver 0::0 80 .\n";
-      return 1;
+
+namespace http = boost::network::http;
+
+
+int
+main(int argc, char *argv[]) {
+    
+    if (argc != 2) {
+        std::cerr << "Usage: " << argv[0] << " url" << std::endl;
+        return 1;
     }
 
-    boost::asio::io_service io_service;
-
-    // Launch the initial server coroutine.
-    boost::rpc::http::server( argv[1], argv[2],
-        boost::rpc::http::file_handler(argv[3]))();
-
-    // Wait for signals indicating time to shut down.
-    boost::asio::signal_set signals(io_service);
-    signals.add(SIGINT);
-    signals.add(SIGTERM);
-#if defined(SIGQUIT)
-    signals.add(SIGQUIT);
-#endif // defined(SIGQUIT)
-    signals.async_wait(boost::bind(
-          &boost::asio::io_service::stop, &io_service));
-
-    // Run the server.
-    io_service.run();
-  }
-  catch (std::exception& e)
-  {
-    std::cerr << "exception: " << e.what() << "\n";
-  }
-
-  return 0;
+    try {
+        /*<< Creates the client. >>*/
+        http::client client;
+        /*<< Creates a request using a URI supplied on the command
+             line. >>*/
+        http::client::request request(argv[1]);
+        /*<< Gets a response from the HTTP server. >>*/
+        http::client::response response = client.get(request);
+        /*<< Prints the response body to the console. >>*/
+        std::cout << body(response) << std::endl;
+    }
+    catch (std::exception &e) {
+        std::cerr << e.what() << std::endl;
+        return 1;
+    }
+    
+    return 0;
 }
+//]

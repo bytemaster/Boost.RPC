@@ -2,7 +2,6 @@
 #define _BOOST_RPC_JSON_TCP_SERVER_HPP_
 #include <boost/cmt/thread.hpp>
 #include <boost/reflect/any_ptr.hpp>
-#include <boost/fusion/support/deduce_sequence.hpp>
 #include <boost/rpc/json/value_io.hpp>
 #include <boost/rpc/json/detail/tcp_server_base.hpp>
 
@@ -42,7 +41,7 @@ namespace boost { namespace rpc { namespace json {
 
           virtual boost::any init_connection( const rpc::json::connection::ptr& con ) {
             boost::reflect::any_ptr<InterfaceType> session( session_generator() );
-            boost::reflect::visit( session, visitor( *con, session ) );
+            boost::reflect::visit( session, add_interface_visitor<InterfaceType>( *con, session ) );
             return session;
           }
           boost::function<boost::shared_ptr<SessionType>()> session_generator;
@@ -55,28 +54,12 @@ namespace boost { namespace rpc { namespace json {
           virtual boost::any init_connection( const rpc::json::connection::ptr& con ) {
             boost::reflect::any_ptr<InterfaceType> session;
             session = shared_session;
-            boost::reflect::visit( session, visitor( *con, session ) );
+            boost::reflect::visit( session, add_interface_visitor<InterfaceType>( *con, session ) );
             return session;
           }
           boost::shared_ptr<SessionType> shared_session;
       };
 
-      /**
-       *  Visits each method on the any_ptr<InterfaceType> and adds it to the connection object.
-       */
-      struct visitor {
-        visitor( rpc::json::connection& c, boost::reflect::any_ptr<InterfaceType>& s )
-        :m_con(c),m_aptr(s){}
-      
-        template<typename Member, typename VTable, Member VTable::*m>
-        void operator()(const char* name )const  {
-             typedef typename boost::fusion::traits::deduce_sequence<typename Member::fused_params>::type param_type;
-             m_con.add_method( name, detail::rpc_recv_functor<param_type, Member&, 
-                              detail::has_named_params<typename Member::fused_params>::value >( (*m_aptr).*m ) );
-        }
-        rpc::json::connection&                   m_con;
-        boost::reflect::any_ptr<InterfaceType>& m_aptr;
-      };
   };
 
 } } } // boost::rpc::json

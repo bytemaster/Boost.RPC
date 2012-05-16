@@ -1,6 +1,7 @@
 #ifndef  _BOOST_RPC_JSON_CLIENT_BASE_HPP
 #define  _BOOST_RPC_JSON_CLIENT_BASE_HPP
 #include <boost/rpc/json/connection.hpp>
+#include <boost/rpc/json/named_parameters.hpp>
 
 namespace boost { namespace rpc { namespace json {
 
@@ -10,7 +11,7 @@ class client_base {
     :m_con(c){}
 
     client_base( const std::string& host, uint16_t port );
-    
+    client_base(){}
 
     template<typename R, typename ParamSeq>
     inline cmt::future<R> call_fused( const std::string& method, const ParamSeq& param ) {

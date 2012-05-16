@@ -21,8 +21,10 @@ target_link_libraries( rpcs ${libraries} )
 add_executable( rpcc  rpc_client.cpp  )
 target_link_libraries( rpcc ${libraries} )
 
-add_executable( httpd  httpd.cpp  )
-target_link_libraries( httpd ${libraries} )
+add_executable( jsonhttpd  jsonhttpd.cpp  )
+target_link_libraries( jsonhttpd ${libraries} cppnetlib-uri cppnetlib-server-parsers )
+add_executable( jsonhttpc  jsonhttpc.cpp  )
+target_link_libraries( jsonhttpc ${libraries} cppnetlib-uri cppnetlib-server-parsers cppnetlib-client-connections)
 
 #add_executable( jsonc  json_client.cpp  )
 #target_link_libraries( jsonc ${libraries} )

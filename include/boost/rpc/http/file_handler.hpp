@@ -11,6 +11,8 @@
 #ifndef BOOST_RPC_HTTP_FILE_HANDLER_HPP
 #define BOOST_RPC_HTTP_FILE_HANDLER_HPP
 
+#include <boost/rpc/http/request.hpp>
+#include <boost/rpc/http/reply.hpp>
 #include <string>
 
 namespace boost { namespace rpc { namespace http {
@@ -26,16 +28,16 @@ namespace boost { namespace rpc { namespace http {
       explicit file_handler(const std::string& doc_root);
 
       /// Handle a request and produce a reply.
-      void operator()(const request& req, reply& rep);
+      bool operator()(const request& req, const std::string& path, reply& rep);
 
     private:
       /// The directory containing the files to be served.
       std::string doc_root_;
 
-      /// Perform URL-decoding on a string. Returns false if the encoding was
-      /// invalid.
-      static bool url_decode(const std::string& in, std::string& out);
     };
+    /// Perform URL-decoding on a string. Returns false if the encoding was
+    /// invalid.
+    bool url_decode(const std::string& in, std::string& out);
 
 } } } // boost::rpc::http
 

@@ -10,37 +10,31 @@
 #include <boost/fusion/include/front.hpp>
 #include <boost/fusion/support/deduce.hpp>
 #include <boost/fusion/include/make_fused_function_object.hpp>
-#include <boost/mpl/if.hpp>
-#include <boost/fusion/include/mpl.hpp>
-#include <boost/fusion/adapted/mpl.hpp>
-#include <boost/fusion/include/make_vector.hpp>
-#include <boost/function_types/parameter_types.hpp>
-#include <boost/function_types/result_type.hpp>
+#include <boost/fusion/support/deduce_sequence.hpp>
 #include <boost/fusion/include/make_unfused.hpp>
+#include <boost/rpc/json/named_parameters.hpp>
+
+#include <boost/reflect/any_ptr.hpp>
 
 
 namespace boost { namespace rpc { namespace json {
+
+typedef boost::error_info<struct json_rpc_error_,json::value> error;
+typedef boost::error_info<struct json_err_data_,std::string> err_data;
+typedef boost::error_info<struct json_err_code_,int64_t> err_code;
+
+  struct error_object : public virtual boost::rpc::exception {
+      const char* what()const throw()     { return message().c_str();     }
+      virtual void       rethrow()const   { BOOST_THROW_EXCEPTION(*this); } 
+
+      const std::string& data()const
+      { return *boost::get_error_info<boost::rpc::json::err_data>(*this); }
+      int64_t code()const
+      { return *boost::get_error_info<boost::rpc::json::err_code>(*this); }
+  };
+
   class connection;
   typedef boost::function<json::value( connection&, const json::value& param )> rpc_method;
-
-  struct named_parameters{};
-  // namespace detail
-  namespace detail {
-
-     /**
-      * If Seq size is 1 and it inherits from named_parameters then Seq will be
-      * sent as named parameters.
-      */
-     template<typename Seq>
-     struct has_named_params : 
-        public boost::mpl::if_c<
-                 (boost::is_base_of<named_parameters, 
-                                    typename boost::fusion::traits::deduce<
-                                        typename boost::fusion::result_of::front<Seq>::type >::type>::value 
-                 && (1 ==  boost::fusion::result_of::size<Seq>::value))
-        , boost::true_type, boost::false_type>::type 
-     { };
-  }
 
   /**
    *  Manages RPC call state including:
@@ -107,20 +101,22 @@ namespace boost { namespace rpc { namespace json {
       template<typename ParamSeq>
       boost::cmt::future<json::value> call_fused( const std::string& method_name, const ParamSeq& param ) {
         json::value msg;
-        msg["method"] = method_name;
+        create_call( method_name, param, msg );
         msg["id"]     = next_method_id();
-        // TODO: transform functor params...
-
-        if( boost::fusion::size(param ) )
-          pack_params( msg["params"], param, typename detail::has_named_params<ParamSeq>::type() );
-
         typename pending_result_impl<json::value>::ptr pr = boost::make_shared<pending_result_impl<json::value> >(); 
-
-        msg["jsonrpc"] = "2.0";
         send( msg, boost::static_pointer_cast<pending_result>(pr) );
         return pr->prom;
       }
 
+      template<typename ParamSeq>
+      void create_call( const std::string& method_name, const ParamSeq& param, json::value& msg ) {
+        msg["method"] = method_name;
+      
+        if( boost::fusion::size(param ) )
+          pack_params( msg["params"], param, typename has_named_params<ParamSeq>::type() );
+      
+        msg["jsonrpc"] = "2.0";
+      }
 
       template<typename R, typename ParamSeq>
       boost::cmt::future<R> call_fused( const std::string& method_name, const ParamSeq& param ) {
@@ -130,7 +126,7 @@ namespace boost { namespace rpc { namespace json {
         // TODO: transform functor params...
 
         if( boost::fusion::size(param ) )
-          pack_params( msg["params"], param, typename detail::has_named_params<ParamSeq>::type() );
+          pack_params( msg["params"], param, typename has_named_params<ParamSeq>::type() );
 
         typename pending_result_impl<R>::ptr pr = boost::make_shared<pending_result_impl<R> >(); 
 
@@ -149,35 +145,17 @@ namespace boost { namespace rpc { namespace json {
          
         // TODO: JSON RPC 1.0 does not allow empty param
         if( boost::fusion::size(param ) )
-          pack_params( msg["params"], param, typename detail::has_named_params<ParamSeq>::type() );
+          pack_params( msg["params"], param, typename has_named_params<ParamSeq>::type() );
 
         msg["jsonrpc"] = "2.0";
         send( msg );
       }
 
       boost::signal<void()> closed;
-
-    protected:
-     // change how params are packed based upon whether or not they are named params
-     template<typename Seq>
-     void pack_params( json::value& v, const Seq& s, const boost::true_type& is_named ) {
-        function_filter f(*this);
-        json::io::pack(f, v, boost::fusion::at_c<0>(s));
-     }
-     template<typename Seq>
-     void pack_params( json::value& v, const Seq& s, const boost::false_type& is_named ) {
-        function_filter f(*this);
-        json::io::pack(f, v,s);
-     }
-
-
-      virtual void send( const json::value& msg ) = 0;
-
-      void break_promises();
+      
+      void handle_call( const json::value& c, json::value& result );
       void handle_notice( const json::value& m );
-      void handle_call(   const json::value& m );
-      void handle_result( const json::value& m );
-      void handle_error(  const json::value& m );
+
 
       class pending_result {
         public:
@@ -187,12 +165,32 @@ namespace boost { namespace rpc { namespace json {
           virtual void handle_error( const boost::exception_ptr& e  ) = 0;
       };
 
+    protected:
+       // change how params are packed based upon whether or not they are named params
+       template<typename Seq>
+       void pack_params( json::value& v, const Seq& s, const boost::true_type& is_named ) {
+          function_filter f(*this);
+          json::io::pack(f, v, boost::fusion::at_c<0>(s));
+       }
+       template<typename Seq>
+       void pack_params( json::value& v, const Seq& s, const boost::false_type& is_named ) {
+          function_filter f(*this);
+          json::io::pack(f, v,s);
+       }
+
+
+      void break_promises();
+      void handle_call(   const json::value& m );
+      void handle_result( const json::value& m );
+      void handle_error(  const json::value& m );
+
+
+      virtual void send( const json::value& msg );
+      virtual void send( const json::value& msg, const connection::pending_result::ptr& pr );
+      virtual uint64_t next_method_id();
+
     private:
       friend class connection_private;
-
-      uint64_t next_method_id();
-
-      void send( const json::value& msg, const connection::pending_result::ptr& pr );
 
 
       template<typename R> 
@@ -281,6 +279,26 @@ namespace boost { namespace rpc { namespace json {
      typedef typename boost::function_types::result_type<Signature>::type  R;
      return m_con.add_method( detail::rpc_recv_functor<param_types,boost::function<R(param_types)>,false>( boost::fusion::make_fused_function_object(f) ) );
   }
+
+
+  /**
+   *  Visits each method on the any_ptr<InterfaceType> and adds it to the connection object.
+   */
+  template<typename InterfaceType>
+  struct add_interface_visitor {
+    add_interface_visitor( rpc::json::connection& c, boost::reflect::any_ptr<InterfaceType>& s )
+    :m_con(c),m_aptr(s){}
+  
+    template<typename Member, typename VTable, Member VTable::*m>
+    void operator()(const char* name )const  {
+         typedef typename boost::fusion::traits::deduce_sequence<typename Member::fused_params>::type param_type;
+         m_con.add_method( name, detail::rpc_recv_functor<param_type, Member&, 
+                          has_named_params<typename Member::fused_params>::value >( (*m_aptr).*m ) );
+    }
+    rpc::json::connection&                   m_con;
+    boost::reflect::any_ptr<InterfaceType>& m_aptr;
+  };
+
 
 } } } // boost::rpc::json
 
