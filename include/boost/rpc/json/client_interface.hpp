@@ -43,6 +43,7 @@
         };
 
         struct client_member_base {
+          client_member_base():m_ci(0){}
           void set( const std::string& mid, boost::rpc::json::client_base* ci ) {
             m_method_id    = mid;
             m_ci           = ci;
@@ -130,9 +131,11 @@ struct client_member<R(Class::*)(PARAM_TYPES)const> : public detail::client_inte
     return (*this)( boost::fusion::make_vector(PARAM_NAMES) );
   }
   inline future_type operator() ( const fused_params& fp )const {
+    BOOST_ASSERT(m_ci);
     return m_ci->call_fused<result_type,fused_params>( m_method_id, fp );
   }
   inline void notice( const fused_params& fp )const {
+    BOOST_ASSERT(m_ci);
     return m_ci->notice_fused( m_method_id, fp );
   }
 };
@@ -156,10 +159,11 @@ struct client_member<R(Class::*)(PARAM_TYPES)>  : public detail::client_interfac
     return (*this)( boost::fusion::make_vector(PARAM_NAMES) );
   }
   inline future_type operator() ( const fused_params& fp ) {
-    //slog( "%1% %2% %3%",m_service_type, m_method_id,  m_con.get() );
+    BOOST_ASSERT(m_ci);
     return m_ci->call_fused<result_type,fused_params>( m_method_id, fp );
   }
   inline void notice( const fused_params& fp )const {
+    BOOST_ASSERT(m_ci);
     return m_ci->notice_fused( m_method_id, fp );
   }
 

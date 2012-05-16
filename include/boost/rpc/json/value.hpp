@@ -55,6 +55,10 @@ namespace boost { namespace rpc { namespace json {
        }
        bool is_array()const;
        bool is_object()const;
+       bool is_string()const;
+       bool is_null()const;
+       bool is_bool()const;
+       bool is_real()const;
 
        bool operator == ( const null_t& t )const;
        inline bool   operator ==( const std::string& v )const { 
@@ -65,6 +69,12 @@ namespace boost { namespace rpc { namespace json {
 
        value& operator = ( int64_t v );
        value& operator = ( uint64_t v );
+       value& operator = ( int32_t v );
+       value& operator = ( uint32_t v );
+       value& operator = ( int16_t v );
+       value& operator = ( uint16_t v );
+       value& operator = ( int8_t v );
+       value& operator = ( uint8_t v );
        value& operator = ( double v );
        value& operator = ( bool v );
        value& operator = ( null_t v );

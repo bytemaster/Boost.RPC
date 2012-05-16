@@ -8,7 +8,6 @@ include_directories( ../atomic/include )
 include_directories( ../network/include )
 
 add_subdirectory( examples )
-add_subdirectory( tests )
 
 SET( libraries  boost_cmt )
 SET( sources 

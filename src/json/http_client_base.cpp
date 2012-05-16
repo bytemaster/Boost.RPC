@@ -60,12 +60,16 @@ class http_connection : public boost::rpc::json::connection {
   public:
       http_connection( const std::string& url )
       :m_client(new boost::network::http::client( boost::network::http::_cache_resolved = true)),m_url(url) {
+        slog( "http connection %1%", this );
       }
       virtual void send( const json::value& msg, 
                          const connection::pending_result::ptr& pr ) {
         slog( "send %1% to %2%", json::to_string(msg), m_url );
         boost::shared_ptr<boost::network::http::client::request> req 
             = boost::make_shared<boost::network::http::client::request>(m_url);
+
+        *req << boost::network::header("Authorization","Basic ");
+
        
         if( msg.contains( "id" ) ) {
            wlog( "id %1%", std::string( msg["id"]) );
@@ -97,6 +101,7 @@ class http_connection : public boost::rpc::json::connection {
 
 http_client_base::http_client_base( const std::string& url ) {
   client_base::m_con = boost::make_shared<http_connection>(url);
+  slog( "m_con: %1%", m_con.get() );
 }
 
 

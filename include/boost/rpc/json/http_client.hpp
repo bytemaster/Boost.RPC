@@ -13,6 +13,8 @@ namespace boost { namespace rpc {  namespace json {
   class http_client_base : public client_base {
     public:
       http_client_base( const std::string& url );
+      http_client_base( const http_client_base& c )
+      :client_base(c){ slog("copy  %1%", m_con.get() ); }
   };
 
   /**
@@ -35,14 +37,15 @@ namespace boost { namespace rpc {  namespace json {
       }
 
       http_client( const http_client& c ):http_client_base(c) {
+        slog( "this: %2% copy, and set visitor %1%", m_con.get(), this );
         boost::rpc::json::client_interface::set( *this );
       }
       bool operator!()const { return !m_con; }
 
       http_client& operator=( const http_client& c ) {
+        slog( "assign" );
         if( &c != this )  {
             m_con = c.m_con;
-            boost::rpc::json::client_interface::set( *this );
         }
         return *this;
       }

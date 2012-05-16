@@ -5,15 +5,19 @@
 #include <boost/lexical_cast.hpp>
 #include <boost/exception/diagnostic_information.hpp>
 #include <boost/rpc/json/http_client.hpp>
+#include "bitcoin.hpp"
+
+
 
 int main( int argc, char** argv ) {
  try {
-   boost::rpc::json::http_client<Calculator> client( argv[1] );
-   slog( "test add" );
-   std::cerr<<(double)client->add(3.131592);
-   slog( "another add" );
-   std::cerr<<(double)client->add(3.131592);
-   slog( "exiting" );
+   boost::rpc::json::http_client<bitcoin::client> bcd( argv[1] );
+//   boost::reflect::any_ptr<bitcoin::client> s = bcd;
+
+   cli  m_cli(bcd);
+   m_cli.start();
+
+   boost::cmt::exec();
  } catch (const  boost::exception& e ) {
    elog( "%1%", boost::diagnostic_information(e) );
  } catch (const  std::exception& e ) {
