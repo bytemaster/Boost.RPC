@@ -5,3 +5,5 @@
 /CMakeScripts/
 /dev.build/
 /*.swp
+examples/jsonhttpc
+examples/jsonhttpd
