@@ -9,6 +9,8 @@
 #include <stdint.h>
 
 namespace boost { namespace rpc { namespace json {
+
+
     struct null_t{ 
         null_t(){}
         friend std::ostream& operator<<( std::ostream& os, const null_t&  ){ return os; }
@@ -40,8 +42,8 @@ namespace boost { namespace rpc { namespace json {
        operator double()const;
        operator float()const;
        operator bool()const;
-       operator const std::string&()const;
-       operator std::string&();
+       operator std::string()const;
+       //operator std::string&();
        operator const json::object&()const;
        operator json::object&();
        operator const json::array&()const;
@@ -150,6 +152,25 @@ namespace boost { namespace rpc { namespace json {
           template<typename InType>
           Result operator()( const InType& d )const {
             return boost::lexical_cast<Result>(d);
+          }
+       };
+       template<>
+       struct cast_visitor<std::string> : public boost::static_visitor<std::string> {
+          template<typename InType>
+          std::string operator()( const InType& d )const {
+            return boost::lexical_cast<std::string>(d);
+          }
+          std::string operator()( const null_t& d )const {
+            return "null";
+          }
+          std::string operator()( const bool& d )const {
+            return d ? "true" : "false";
+          }
+          std::string operator()( const json::array& d )const {
+            return to_string(value(d));
+          }
+          std::string operator()( const json::object& d )const {
+            return to_string(value(d));
           }
        };
 
