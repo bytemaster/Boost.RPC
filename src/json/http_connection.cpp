@@ -2,6 +2,7 @@
 #include <boost/rpc/json/connection.hpp>
 #include <boost/rpc/json/http_client.hpp>
 #include <boost/cmt/asio.hpp>
+#include <boost/rpc/json/http_connection.hpp>
 
 namespace boost { namespace rpc { namespace json {
 
@@ -51,58 +52,56 @@ void async_post_http_request(
   }
 }
 
-
-/**
- *  Interfaces with boost::network::http::client to invoke methods and get the
- *  result async.
- */
-class http_connection : public boost::rpc::json::connection {
+class http_connection_private {
   public:
-      http_connection( const std::string& url )
-      :m_client(new boost::network::http::client( boost::network::http::_cache_resolved = true)),m_url(url) {
-        slog( "http connection %1%", this );
-      }
-      virtual void send( const json::value& msg, 
-                         const connection::pending_result::ptr& pr ) {
-        slog( "send %1% to %2%", json::to_string(msg), m_url );
-        boost::shared_ptr<boost::network::http::client::request> req 
-            = boost::make_shared<boost::network::http::client::request>(m_url);
+      http_connection_private( const std::string& url )
+      :m_url(url),m_client(new boost::network::http::client( boost::network::http::_cache_resolved = true))
+      {}
 
-        *req << boost::network::header("Authorization","Basic ");
-
-       
-        if( msg.contains( "id" ) ) {
-           wlog( "id %1%", std::string( msg["id"]) );
-        }
-        std::string json_str;
-        json::to_string( msg, json_str );
-        boost::cmt::asio::default_io_service().post( 
-          boost::bind( async_post_http_request, shared_from_this(),
-                      m_client, req, json_str, std::string(msg["id"]), pr ) );
-      }
-
-      virtual void send( const json::value& msg ) {
-        boost::shared_ptr<boost::network::http::client::request> req 
-            = boost::make_shared<boost::network::http::client::request>(m_url);
-        std::string json_str;
-        json::to_string( msg, json_str );
-        boost::cmt::asio::default_io_service().post( 
-          boost::bind( async_post_http_request, 
-                      shared_from_this(),
-                      m_client, req, json_str, std::string(),
-                      connection::pending_result::ptr() ) );
-      }
-
+      std::map<std::string,std::string>                m_headers;
       // thread that does the actual work... 
       std::string                                      m_url;
       boost::shared_ptr<boost::network::http::client>  m_client;
 };
 
 
-http_client_base::http_client_base( const std::string& url ) {
-  client_base::m_con = boost::make_shared<http_connection>(url);
-  slog( "m_con: %1%", m_con.get() );
+http_connection::http_connection( const std::string& url )
+:boost::rpc::json::connection() {
+  my = new http_connection_private(url);
+}
+
+http_connection::~http_connection() {
+  delete my;
 }
 
 
-} } } // boost::rpc::json
+void http_connection::send( const json::value& msg, 
+                 const connection::pending_result::ptr& pr ) {
+    boost::shared_ptr<boost::network::http::client::request> req 
+        = boost::make_shared<boost::network::http::client::request>(my->m_url);
+
+    for( std::map<std::string,std::string>::const_iterator i = my->m_headers.begin(); 
+         i != my->m_headers.end(); ++i ) {
+      *req << boost::network::header(i->first,i->second);
+    }
+    std::string json_str;
+    json::to_string( msg, json_str );
+    boost::cmt::asio::default_io_service().post( 
+      boost::bind( async_post_http_request, shared_from_this(),
+                  my->m_client, req, json_str, std::string(msg["id"]), pr ) );
+}
+
+void http_connection::send( const json::value& msg ) {
+    boost::shared_ptr<boost::network::http::client::request> req 
+        = boost::make_shared<boost::network::http::client::request>(my->m_url);
+    std::string json_str;
+    json::to_string( msg, json_str );
+    boost::cmt::asio::default_io_service().post( 
+      boost::bind( async_post_http_request, 
+                  shared_from_this(),
+                  my->m_client, req, json_str, std::string(),
+                  connection::pending_result::ptr() ) );
+}
+  
+
+} } } 

@@ -17,7 +17,7 @@ SET( sources
         src/json/value.cpp
         src/json/tcp_server.cpp
         src/json/http_server.cpp
-        src/json/http_client_base.cpp
+        src/json/http_connection.cpp
 
         src/http/file_handler.cpp
         src/http/path_handler.cpp
