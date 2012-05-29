@@ -4,7 +4,6 @@ include_directories( ../cmt/include )
 include_directories( ../stub/include )
 include_directories( ../reflect/include )
 include_directories( ../context/include )
-include_directories( ../move/include )
 include_directories( ../atomic/include )
 include_directories( ../network/include )
 
