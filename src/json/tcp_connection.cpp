@@ -20,6 +20,7 @@ class tcp_connection_private {
         read_done.wait(); 
       }
 
+      /// @todo break all promises when connection is closed.
       void read_loop() {
         // m_connected = true;
         try {

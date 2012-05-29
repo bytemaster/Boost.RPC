@@ -71,7 +71,7 @@
       /**
        * @brief Implements the InterfaceDelegate meta-function to 
        *      determine what type to create to mirror MemberPointer 
-       *      in mace::reflect::vtable used by mace::reflect::any_ptr
+       *      in mace::reflect::vtable used by mace::stub::ptr
        */
       template<typename MemberPointer>
       struct calculate_type {

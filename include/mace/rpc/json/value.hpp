@@ -22,7 +22,11 @@ namespace mace { namespace rpc { namespace json {
                              boost::recursive_wrapper<object>, 
                              boost::recursive_wrapper<array> > value_variant;
 
-    struct value {
+    /**
+     *  @brief variant type that may hold a string, int, double, array, bool, nil, or object.
+     */
+    class value {
+      public:
        value();
        value( const value& c );
        value( const std::string& v );

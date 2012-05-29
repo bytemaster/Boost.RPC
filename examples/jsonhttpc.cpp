@@ -1,13 +1,8 @@
-#include <iostream>
 #include <mace/rpc/json/client.hpp>
-#include "calculator.hpp"
 #include "cli.hpp"
-#include <boost/lexical_cast.hpp>
 #include <boost/exception/diagnostic_information.hpp>
 #include <mace/rpc/json/http_client.hpp>
 #include "bitcoin.hpp"
-
-
 
 int main( int argc, char** argv ) {
  try {

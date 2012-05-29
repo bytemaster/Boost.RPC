@@ -18,7 +18,12 @@
 
 #include <mace/stub/ptr.hpp>
 
-namespace mace { namespace rpc { namespace json {
+namespace mace { namespace rpc { 
+/**
+ *  @brief All JSON-RPC Related APIs
+ *
+ */
+namespace json {
 
 typedef boost::error_info<struct json_rpc_error_,json::value> error;
 typedef boost::error_info<struct json_err_data_,std::string> err_data;
