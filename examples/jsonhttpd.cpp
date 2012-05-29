@@ -11,7 +11,7 @@ class CalculatorServer {
 
         std::string name()const            { return "CalculatorServer";  }
         int   exit()                       { ::exit(0);                  }
-        double add( double v )             { m_result += v       return m_result;  }
+        double add( double v )             { m_result += v;      return m_result;  }
         double sub( double v )             { m_result -= v;      return m_result;  }  
         double mult( double v )            { m_result *= v;      return m_result;  }
         double div( const calc_str& v )    {                     return m_result;  }
