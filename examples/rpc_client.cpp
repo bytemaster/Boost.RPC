@@ -1,10 +1,10 @@
 #include <iostream>
-#include <boost/rpc/json/client.hpp>
+#include <mace/rpc/json/client.hpp>
 #include "calculator.hpp"
 #include "cli.hpp"
 #include <boost/lexical_cast.hpp>
 #include <boost/exception/diagnostic_information.hpp>
-#include <boost/rpc/json/tcp_connection.hpp>
+#include <mace/rpc/json/tcp_connection.hpp>
 
 std::string test_callback( int c ) {
   std::cerr<<"test_callback "<<c<<std::endl;
@@ -17,7 +17,7 @@ int main( int argc, char** argv ) {
         return 0;
     }
     try {
-      boost::rpc::json::client<Calculator> calc( argv[1], boost::lexical_cast<int>(argv[2]) );  
+      mace::rpc::json::client<Calculator> calc( argv[1], boost::lexical_cast<int>(argv[2]) );  
       std::cerr<<"Result: "<<(double)calc->add(5.55)<<std::endl;
       std::cerr<<"Result: "<<(double)calc->add(5.55)<<std::endl;
 
@@ -30,9 +30,9 @@ int main( int argc, char** argv ) {
       std::cerr<< calc->npt( named_param_test( 1,2 ) ) <<std::endl;
       std::cerr<< calc->npt( named_param_test() ) <<std::endl;
 
-      boost::rpc::json::tcp_connection con( argv[1], boost::lexical_cast<int>(argv[2]) );
+      mace::rpc::json::tcp_connection con( argv[1], boost::lexical_cast<int>(argv[2]) );
 
-      boost::rpc::json::value r = con.call( "add", 6.666 );
+      mace::rpc::json::value r = con.call( "add", 6.666 );
       /*
       json::value r = con->call( "add", rpc::named_params()
                                           ("one", 3.45)

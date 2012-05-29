@@ -1,7 +1,7 @@
 SET( libraries 
     #/usr/local/lib/tcmalloc/libtcmalloc.a
     mace_cmt
-    boost_rpc
+    mace_rpc
     boost_context 
     ${Boost_THREAD_LIBRARY} 
     ${Boost_ASIO_LIBRARY} 

@@ -4,7 +4,7 @@
 #include <mace/reflect/reflect.hpp>
 #include <mace/stub/ptr.hpp>
 #include <mace/cmt/future.hpp>
-#include <boost/rpc/json/connection.hpp>
+#include <mace/rpc/json/connection.hpp>
 
 struct calc_str {
   calc_str(){};
@@ -22,7 +22,7 @@ struct Service
     int         exit();
 };
 
-struct named_param_test : public boost::rpc::json::named_parameters {
+struct named_param_test : public mace::rpc::json::named_parameters {
   named_param_test(){}
   named_param_test( int _x ):x(_x){}
   named_param_test( int _x, int _y ):x(_x),y(_y){}

@@ -30,7 +30,7 @@ SET( sources
 
 install( DIRECTORY include/boost/rpc DESTINATION include/boost )
 
-SETUP_LIBRARY( boost_rpc SOURCES ${sources}
+SETUP_LIBRARY( mace_rpc SOURCES ${sources}
                          LIBRARIES  ${libraries}
                          LIBRARY_TYPE STATIC )
  

@@ -1,8 +1,8 @@
 #include <mace/cmt/asio.hpp>
-#include <boost/rpc/error.hpp>
-#include <boost/rpc/json/tcp_connection.hpp>
+#include <mace/rpc/error.hpp>
+#include <mace/rpc/json/tcp_connection.hpp>
 
-namespace boost { namespace rpc { namespace json {
+namespace mace { namespace rpc { namespace json {
 
 class tcp_connection_private {
   public:
@@ -53,7 +53,7 @@ class tcp_connection_private {
                     //std::cerr<<buf<<std::endl;
                     mace::cmt::async( boost::bind(&tcp_connection_private::on_receive, this, v ) );
                     buf.resize(0);
-                    v = boost::rpc::json::value();
+                    v = mace::rpc::json::value();
                 }
                 ++itr;
             }
@@ -107,7 +107,7 @@ tcp_connection::tcp_connection( const std::string& host, uint16_t port,
       return;
     } 
   }
-  BOOST_RPC_THROW( "Unable to connect to host %1%:%2%", %host %port );
+  MACE_RPC_THROW( "Unable to connect to host %1%:%2%", %host %port );
 }
 
 
@@ -122,4 +122,4 @@ void tcp_connection::send( const json::value& msg ) {
     my->sock->write( str.c_str(), str.size() );
 }
 
-} } } // namespace boost::rpc::json
+} } } // namespace mace::rpc::json

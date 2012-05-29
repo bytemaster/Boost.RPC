@@ -2,7 +2,7 @@
 #include "calculator.hpp"
 #include <boost/lexical_cast.hpp>
 #include <mace/cmt/thread.hpp>
-#include <boost/rpc/json/tcp_server.hpp>
+#include <mace/rpc/json/tcp_server.hpp>
 
 class CalculatorServer
 {
@@ -52,7 +52,7 @@ int main( int argc, char** argv ) {
     }
     using namespace boost;
     try {
-        boost::rpc::json::tcp_server<Calculator>  serv( boost::function<boost::shared_ptr<CalculatorServer>()>(create_session), boost::lexical_cast<int>(argv[1]) );
+        mace::rpc::json::tcp_server<Calculator>  serv( boost::function<boost::shared_ptr<CalculatorServer>()>(create_session), boost::lexical_cast<int>(argv[1]) );
         mace::cmt::exec();
     } catch ( const boost::exception& e )
     {

@@ -1,19 +1,19 @@
-#include <boost/rpc/json/value.hpp>
-#include <boost/rpc/json/error.hpp>
+#include <mace/rpc/json/value.hpp>
+#include <mace/rpc/json/error.hpp>
 #include <boost/spirit/include/qi.hpp>
 #include <boost/fusion/include/adapt_struct.hpp>
 #include <boost/spirit/include/support_utree.hpp>
 #include <iomanip>
 
-BOOST_FUSION_ADAPT_STRUCT( boost::rpc::json::detail::key_val, (std::string,key)(boost::rpc::json::value,val) )
-BOOST_FUSION_ADAPT_STRUCT( boost::rpc::json::object, 
-                            (std::vector<boost::rpc::json::detail::key_val>, keys) );
-BOOST_FUSION_ADAPT_STRUCT( boost::rpc::json::value, 
-                            (boost::rpc::json::value_variant, val) );
-BOOST_FUSION_ADAPT_STRUCT( boost::rpc::json::array,  (std::vector<boost::rpc::json::value>, vals) );
+BOOST_FUSION_ADAPT_STRUCT( mace::rpc::json::detail::key_val, (std::string,key)(mace::rpc::json::value,val) )
+BOOST_FUSION_ADAPT_STRUCT( mace::rpc::json::object, 
+                            (std::vector<mace::rpc::json::detail::key_val>, keys) );
+BOOST_FUSION_ADAPT_STRUCT( mace::rpc::json::value, 
+                            (mace::rpc::json::value_variant, val) );
+BOOST_FUSION_ADAPT_STRUCT( mace::rpc::json::array,  (std::vector<mace::rpc::json::value>, vals) );
 
 
-namespace boost { namespace rpc { namespace json {
+namespace mace { namespace rpc { namespace json {
 
     namespace detail {
     using namespace boost::spirit;
@@ -338,5 +338,5 @@ const value& operator>>(const value& jv, value& v ) {
   return jv;
 }
 
-} } } // namespace boost::rpc::json
+} } } // namespace mace::rpc::json
 

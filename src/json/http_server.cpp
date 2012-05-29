@@ -1,7 +1,7 @@
 #include <boost/network/protocol/http/server.hpp>
-#include <boost/rpc/json/http_server.hpp>
+#include <mace/rpc/json/http_server.hpp>
 
-namespace boost { namespace rpc { namespace json { 
+namespace mace { namespace rpc { namespace json { 
 
   class http_server_private {
     public:

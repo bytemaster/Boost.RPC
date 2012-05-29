@@ -8,11 +8,11 @@
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#include <boost/rpc/http/reply.hpp>
+#include <mace/rpc/http/reply.hpp>
 #include <string>
 #include <boost/lexical_cast.hpp>
 
-namespace boost { namespace rpc { namespace http {
+namespace mace { namespace rpc { namespace http {
 
 namespace status_strings {
 
@@ -251,4 +251,4 @@ reply reply::stock_reply(reply::status_type status)
   return rep;
 }
 
-} } } // boost::rpc::http
+} } } // mace::rpc::http

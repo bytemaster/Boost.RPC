@@ -11,7 +11,7 @@
   demonstrate how easy it is to set up an HTTP server.  All we do in
   this example is create a request handler and run the server.
  */
-#include <boost/rpc/json/http_server.hpp>
+#include <mace/rpc/json/http_server.hpp>
 #include <iostream>
 #include "calculator.hpp"
 
@@ -61,7 +61,7 @@ int main(int argc, char * argv[]) {
     }
 
     try {
-      boost::rpc::json::http_server server( argv[1], boost::lexical_cast<int>(argv[2]) );
+      mace::rpc::json::http_server server( argv[1], boost::lexical_cast<int>(argv[2]) );
       slog( "calculator!" );
       server.add_service<Calculator>( "/calculator", create_session() );
       slog( "exec!" );

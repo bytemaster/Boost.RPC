@@ -1,10 +1,10 @@
-#include <boost/rpc/json/detail/tcp_server_base.hpp>
-#include <boost/rpc/json/tcp_connection.hpp>
-#include <boost/rpc/json/value_io.hpp>
+#include <mace/rpc/json/detail/tcp_server_base.hpp>
+#include <mace/rpc/json/tcp_connection.hpp>
+#include <mace/rpc/json/value_io.hpp>
 #include <mace/cmt/asio/tcp/socket.hpp>
 #include <mace/cmt/asio.hpp>
 
-namespace boost { namespace rpc { namespace json {
+namespace mace { namespace rpc { namespace json {
 
   namespace detail {
     namespace cmt = mace::cmt;
@@ -77,5 +77,5 @@ namespace boost { namespace rpc { namespace json {
 
   } // namespace detail
 
-} } } // namespace boost::rpc::json
+} } } // namespace mace::rpc::json
 

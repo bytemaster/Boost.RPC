@@ -1,11 +1,11 @@
-#include <boost/rpc/http/path_handler.hpp>
+#include <mace/rpc/http/path_handler.hpp>
 #include <boost/lexical_cast.hpp>
-#include <boost/rpc/http/mime_types.hpp>
-#include <boost/rpc/http/reply.hpp>
-#include <boost/rpc/http/request.hpp>
-#include <boost/rpc/http/file_handler.hpp>
+#include <mace/rpc/http/mime_types.hpp>
+#include <mace/rpc/http/reply.hpp>
+#include <mace/rpc/http/request.hpp>
+#include <mace/rpc/http/file_handler.hpp>
 
-namespace boost { namespace rpc { namespace http {
+namespace mace { namespace rpc { namespace http {
 
  // TODO: make sure path_handler is thread safe... this handler may be called from any ADIO thread
 void path_handler::operator()(const request& req, reply& rep) {
@@ -43,4 +43,4 @@ void path_handler::register_handler( const std::string& prefix, const handler_ty
   else m_handlers[prefix] = h;
 }
 
-} } } // boost::rpc::http
+} } } // mace::rpc::http

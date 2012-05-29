@@ -8,16 +8,16 @@
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#include <boost/rpc/http/file_handler.hpp>
+#include <mace/rpc/http/file_handler.hpp>
 #include <fstream>
 #include <sstream>
 #include <string>
 #include <boost/lexical_cast.hpp>
-#include <boost/rpc/http/mime_types.hpp>
-#include <boost/rpc/http/reply.hpp>
-#include <boost/rpc/http/request.hpp>
+#include <mace/rpc/http/mime_types.hpp>
+#include <mace/rpc/http/reply.hpp>
+#include <mace/rpc/http/request.hpp>
 
-namespace boost { namespace rpc { namespace http {
+namespace mace { namespace rpc { namespace http {
 
 file_handler::file_handler(const std::string& doc_root)
   : doc_root_(doc_root)
@@ -101,4 +101,4 @@ bool url_decode(const std::string& in, std::string& out)
   return true;
 }
 
-} } } //boost::rpc::http
+} } } //mace::rpc::http

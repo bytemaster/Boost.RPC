@@ -1,14 +1,14 @@
 #include <boost/network/protocol/http/client.hpp>
-#include <boost/rpc/json/connection.hpp>
-#include <boost/rpc/json/http_client.hpp>
+#include <mace/rpc/json/connection.hpp>
+#include <mace/rpc/json/http_client.hpp>
 #include <mace/cmt/asio.hpp>
-#include <boost/rpc/json/http_connection.hpp>
+#include <mace/rpc/json/http_connection.hpp>
 
-namespace boost { namespace rpc { namespace json {
+namespace mace { namespace rpc { namespace json {
 
 // called from io_service 
 void async_post_http_request( 
-  const boost::rpc::json::connection::ptr& con,
+  const mace::rpc::json::connection::ptr& con,
   const boost::shared_ptr<boost::network::http::client>& c,
   const boost::shared_ptr<boost::network::http::client::request>& rq,
   const std::string& json_str,
@@ -23,7 +23,7 @@ void async_post_http_request(
       json::from_string( boost::network::http::body(resp), v );
       if( req_id.size() && ( v.contains( "id" ) && std::string(v["id"]) != req_id) ) {
          rs->handle_error( 
-            boost::copy_exception( boost::rpc::exception() 
+            boost::copy_exception( mace::rpc::exception() 
                     << err_msg("Response ID did not match request") ) );
       }
     
@@ -39,7 +39,7 @@ void async_post_http_request(
          if( err.contains("data") ) data = (std::string)err["data"];
 
          rs->handle_error( boost::copy_exception( 
-                  boost::rpc::json::error_object() 
+                  mace::rpc::json::error_object() 
                                << json::err_code(code)
                                << json::err_data(data)
                                << rpc::err_msg(msg) ) );
@@ -66,7 +66,7 @@ class http_connection_private {
 
 
 http_connection::http_connection( const std::string& url )
-:boost::rpc::json::connection() {
+:mace::rpc::json::connection() {
   my = new http_connection_private(url);
 }
 
@@ -104,4 +104,4 @@ void http_connection::send( const json::value& msg ) {
 }
   
 
-} } } 
+} } }  // mace::rpc::json

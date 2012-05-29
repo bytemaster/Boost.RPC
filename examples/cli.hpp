@@ -1,12 +1,12 @@
-#ifndef _BOOST_IDL_CLI_HPP_
-#define _BOOST_IDL_CLI_HPP_
+#ifndef _MACE_RPC_CLI_HPP_
+#define _MACE_RPC_CLI_HPP_
 #include <sstream>
 #include <iomanip>
 #include <iostream>
 #include <boost/fusion/sequence/io.hpp>
 #include <mace/reflect/reflect.hpp>
 #include <boost/utility/result_of.hpp>
-#include <boost/rpc/json/value_io.hpp>
+#include <mace/rpc/json/value_io.hpp>
 
 inline std::string cin_getline() {
     std::string s;
@@ -103,12 +103,12 @@ class cli {
            std::string operator()( const std::string& cli )
            {
               typedef typename boost::fusion::traits::deduce_sequence<Seq>::type param_type;
-              boost::rpc::json::value v;
-              boost::rpc::json::from_string(cli, v);
+              mace::rpc::json::value v;
+              mace::rpc::json::from_string(cli, v);
               param_type args;
-              boost::rpc::json::io::unpack( v, args );
-              boost::rpc::json::value r;
-              boost::rpc::json::io::pack( r, wait_future(m_func(args)) );
+              mace::rpc::json::io::unpack( v, args );
+              mace::rpc::json::value r;
+              mace::rpc::json::io::pack( r, wait_future(m_func(args)) );
               return r;
            }
            Functor m_func;

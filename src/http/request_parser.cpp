@@ -8,15 +8,15 @@
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#include <boost/rpc/http/request_parser.hpp>
+#include <mace/rpc/http/request_parser.hpp>
 #include <algorithm>
 #include <cctype>
 #include <boost/lexical_cast.hpp>
-#include <boost/rpc/http/request.hpp>
+#include <mace/rpc/http/request.hpp>
 
-namespace boost { namespace rpc { namespace http {
+namespace mace { namespace rpc { namespace http {
 
-#include <boost/rpc/http/yield.hpp> // Enable the pseudo-keywords reenter, yield and fork.
+#include <mace/rpc/http/yield.hpp> // Enable the pseudo-keywords reenter, yield and fork.
 
 std::string request_parser::content_length_name_ = "Content-Length";
 
@@ -174,7 +174,7 @@ boost::tribool request_parser::consume(request& req, char c)
   return true;
 }
 
-#include <boost/rpc/http/unyield.hpp> // Disable the pseudo-keywords reenter, yield and fork.
+#include <mace/rpc/http/unyield.hpp> // Disable the pseudo-keywords reenter, yield and fork.
 
 bool request_parser::is_char(int c)
 {
@@ -219,4 +219,4 @@ bool request_parser::headers_equal(const std::string& a, const std::string& b)
       &request_parser::tolower_compare);
 }
 
-} } } // boost::rpc::http
+} } } // mace::rpc::http

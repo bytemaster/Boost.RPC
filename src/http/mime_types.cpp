@@ -8,9 +8,9 @@
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#include <boost/rpc/http/mime_types.hpp>
+#include <mace/rpc/http/mime_types.hpp>
 
-namespace boost { namespace rpc { namespace http {
+namespace mace { namespace rpc { namespace http {
 namespace mime_types {
 
 struct mapping
@@ -40,4 +40,4 @@ std::string extension_to_type(const std::string& extension)
   return "text/plain";
 }
 
-} } } } // boost::rpc::http::mime_types
+} } } } // mace::rpc::http::mime_types

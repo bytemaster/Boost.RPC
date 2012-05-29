@@ -1,12 +1,12 @@
-#include <boost/rpc/json/connection.hpp>
+#include <mace/rpc/json/connection.hpp>
 #include <boost/unordered_map.hpp>
-#include <boost/rpc/json/value.hpp>
-#include <boost/rpc/json/value_io.hpp>
-#include <boost/rpc/json/error.hpp>
-#include <boost/rpc/error.hpp>
+#include <mace/rpc/json/value.hpp>
+#include <mace/rpc/json/value_io.hpp>
+#include <mace/rpc/json/error.hpp>
+#include <mace/rpc/error.hpp>
 
 
-namespace boost { namespace rpc { namespace json {
+namespace mace { namespace rpc { namespace json {
   typedef std::map<std::string,rpc_method>                                  method_map;
 
   class connection_private {
@@ -145,7 +145,7 @@ namespace boost { namespace rpc { namespace json {
       if( itr != my->pending_results.end() ) {
          if( m.contains("error") ) {
            std::string emsg = json::to_string(m["error"]);
-           itr->second->handle_error( boost::copy_exception( boost::rpc::exception() << err_msg(emsg) ));
+           itr->second->handle_error( boost::copy_exception( mace::rpc::exception() << err_msg(emsg) ));
          }
          my->pending_results.erase(itr);
         return;
@@ -156,8 +156,8 @@ namespace boost { namespace rpc { namespace json {
     }
   }
   void connection::send( const json::value& msg ) {
-    BOOST_RPC_THROW( "boost::rpc::connection::send(json::value) was not overridden" );
+    MACE_RPC_THROW( "mace::rpc::connection::send(json::value) was not overridden" );
   }
 
 
-} } } // namespace boost::rpc::json
+} } } // namespace mace::rpc::json

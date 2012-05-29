@@ -8,12 +8,12 @@
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#include <boost/rpc/http/server.hpp>
-#include <boost/rpc/http/request.hpp>
-#include <boost/rpc/http/reply.hpp>
+#include <mace/rpc/http/server.hpp>
+#include <mace/rpc/http/request.hpp>
+#include <mace/rpc/http/reply.hpp>
 #include <mace/cmt/asio.hpp>
 
-namespace boost { namespace rpc { namespace http {
+namespace mace { namespace rpc { namespace http {
 
 server::server( const std::string& address, const std::string& port,
     boost::function<void(const request&, reply&)> request_handler)
@@ -25,7 +25,7 @@ server::server( const std::string& address, const std::string& port,
   acceptor_.reset(new tcp::acceptor(mace::cmt::asio::default_io_service(), *resolver.resolve(query)));
 }
 
-#include <boost/rpc/http/yield.hpp> // Enable the pseudo-keywords reenter, yield and fork.
+#include <mace/rpc/http/yield.hpp> // Enable the pseudo-keywords reenter, yield and fork.
 
 void server::operator()(boost::system::error_code ec, std::size_t length)
 {
@@ -113,6 +113,6 @@ void server::operator()(boost::system::error_code ec, std::size_t length)
   // will be destroyed automatically after this function call returns.
 }
 
-#include <boost/rpc/http/unyield.hpp> // Disable the pseudo-keywords reenter, yield and fork.
+#include <mace/rpc/http/unyield.hpp> // Disable the pseudo-keywords reenter, yield and fork.
 
-} } } // boost::rpc::http
+} } } // mace::rpc::http
