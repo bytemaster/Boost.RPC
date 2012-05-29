@@ -1,6 +1,6 @@
 #ifndef _BOOST_RPC_JSON_CLIENT_HPP_
 #define _BOOST_RPC_JSON_CLIENT_HPP_
-#include <boost/reflect/any_ptr.hpp>
+#include <mace/stub/ptr.hpp>
 #include <boost/rpc/json/client_interface.hpp>
 #include <boost/rpc/json/client_base.hpp>
 
@@ -15,7 +15,7 @@ namespace boost { namespace rpc {  namespace json {
    *          connection object without having to iterate over the methods again.
    */
   template<typename InterfaceType>
-  class client : public boost::reflect::any_ptr<InterfaceType, boost::rpc::json::client_interface>, 
+  class client : public mace::stub::ptr<InterfaceType, boost::rpc::json::client_interface>, 
                  public client_base {
     public:
       typedef boost::shared_ptr<client>   ptr;

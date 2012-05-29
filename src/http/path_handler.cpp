@@ -4,7 +4,6 @@
 #include <boost/rpc/http/reply.hpp>
 #include <boost/rpc/http/request.hpp>
 #include <boost/rpc/http/file_handler.hpp>
-#include <boost/cmt/log/log.hpp>
 
 namespace boost { namespace rpc { namespace http {
 
@@ -16,7 +15,6 @@ void path_handler::operator()(const request& req, reply& rep) {
      rep = reply::stock_reply(reply::bad_request);
      return;
    }
-   slog( "request path %1%", request_path );
    // Request path must be absolute and not contain "..".
    if (request_path.empty() || request_path[0] != '/'
        || request_path.find("..") != std::string::npos)
@@ -29,10 +27,9 @@ void path_handler::operator()(const request& req, reply& rep) {
    std::map<std::string,handler_type>::const_iterator itr = m_handlers.begin();//m_handlers.lower_bound(request_path);   
    while( itr != m_handlers.end() ) {
      if( itr->first != base_path.substr(0,itr->first.size()) ) {
-       wlog( "stop search before %1% != %2% ", itr->first, base_path.substr(0,itr->first.size()) );
+       //wlog( "stop search before %1% != %2% ", itr->first, base_path.substr(0,itr->first.size()) );
        break;
      }
-     slog( "trying %1%", request_path.substr(itr->first.size()) );
      if(itr->second(req,request_path.substr(itr->first.size()),rep) ) {
        return;
      } 

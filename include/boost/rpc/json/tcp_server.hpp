@@ -1,7 +1,7 @@
 #ifndef _BOOST_RPC_JSON_TCP_SERVER_HPP_
 #define _BOOST_RPC_JSON_TCP_SERVER_HPP_
-#include <boost/cmt/thread.hpp>
-#include <boost/reflect/any_ptr.hpp>
+#include <mace/cmt/thread.hpp>
+#include <mace/stub/ptr.hpp>
 #include <boost/rpc/json/value_io.hpp>
 #include <boost/rpc/json/detail/tcp_server_base.hpp>
 
@@ -25,12 +25,12 @@ namespace boost { namespace rpc { namespace json {
 
       template<typename SessionType>
       tcp_server( const boost::function<boost::shared_ptr<SessionType>()>& sg, uint16_t port, 
-                  boost::cmt::thread* t = &boost::cmt::thread::current() )
+                  mace::cmt::thread* t = &mace::cmt::thread::current() )
       :tcp_server_base( new session_creator_impl<SessionType>(sg), port, t ){}
 
       template<typename SessionType>
       tcp_server( const boost::shared_ptr<SessionType>& shared_session, uint16_t port,
-                 boost::cmt::thread* t = &boost::cmt::thread::current() ) 
+                 mace::cmt::thread* t = &mace::cmt::thread::current() ) 
       :tcp_server_base( new shared_session_creator<SessionType>(shared_session), port, t ){}
 
     private:
@@ -40,8 +40,8 @@ namespace boost { namespace rpc { namespace json {
           :session_generator(sg){ }
 
           virtual boost::any init_connection( const rpc::json::connection::ptr& con ) {
-            boost::reflect::any_ptr<InterfaceType> session( session_generator() );
-            boost::reflect::visit( session, add_interface_visitor<InterfaceType>( *con, session ) );
+            mace::stub::ptr<InterfaceType> session( session_generator() );
+            mace::stub::visit( session, add_interface_visitor<InterfaceType>( *con, session ) );
             return session;
           }
           boost::function<boost::shared_ptr<SessionType>()> session_generator;
@@ -52,9 +52,9 @@ namespace boost { namespace rpc { namespace json {
           shared_session_creator( const boost::shared_ptr<SessionType>& ss ):shared_session(ss){}
 
           virtual boost::any init_connection( const rpc::json::connection::ptr& con ) {
-            boost::reflect::any_ptr<InterfaceType> session;
+            mace::stub::ptr<InterfaceType> session;
             session = shared_session;
-            boost::reflect::visit( session, add_interface_visitor<InterfaceType>( *con, session ) );
+            mace::stub::visit( session, add_interface_visitor<InterfaceType>( *con, session ) );
             return session;
           }
           boost::shared_ptr<SessionType> shared_session;

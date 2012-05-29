@@ -1,10 +1,20 @@
-#ifndef _BOOST_REFLECT_CALCULATOR_HPP
-#define _BOOST_REFLECT_CALCULATOR_HPP
-#include <boost/reflect/mirror_interface.hpp>
-#include <boost/reflect/reflect.hpp>
-#include <boost/reflect/any_ptr.hpp>
-#include <boost/cmt/future.hpp>
+#ifndef _MACE_REFLECT_CALCULATOR_HPP
+#define _MACE_REFLECT_CALCULATOR_HPP
+#include <mace/stub/mirror_interface.hpp>
+#include <mace/reflect/reflect.hpp>
+#include <mace/stub/ptr.hpp>
+#include <mace/cmt/future.hpp>
 #include <boost/rpc/json/connection.hpp>
+
+struct calc_str {
+  calc_str(){};
+
+  std::string operation;
+  double left;
+  double right;
+};
+
+MACE_REFLECT( calc_str, (operation)(left)(right) );
 
 struct Service
 {
@@ -20,15 +30,16 @@ struct named_param_test : public boost::rpc::json::named_parameters {
   boost::optional<int> y;
 };
 
-BOOST_REFLECT( named_param_test, (x)(y) );
+MACE_REFLECT( named_param_test, (x)(y) );
 
 struct Calculator : Service
 {
+  //  double match( const std::vector<calc>& batch );
     double add( double v );           
     double add2( double v, double v2 );
     double sub( double v );           
     double mult( double v );           
-    double div( double v );           
+    double div( const calc_str& v );           
 
     void   set_callback( int c, const boost::function<std::string(int)>& cb );
 
@@ -37,7 +48,7 @@ struct Calculator : Service
     double result()const;
 };
 
-BOOST_REFLECT_ANY( Service, (name)(exit) )
-BOOST_REFLECT_ANY_DERIVED( Calculator, (Service), (add)(add2)(sub)(mult)(div)(result)(npt)(set_callback) )
+MACE_STUB( Service, (name)(exit) )
+MACE_STUB_DERIVED( Calculator, (Service), (add)(add2)(sub)(mult)(div)(result)(npt)(set_callback) )
 
-#endif // _BOOST_REFLECT_CALCULATOR_HPP
+#endif // _MACE_REFLECT_CALCULATOR_HPP

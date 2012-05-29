@@ -1,6 +1,6 @@
 #ifndef _BOOST_RPC_JSON_HTTP_SERVER_HPP_
 #define _BOOST_RPC_JSON_HTTP_SERVER_HPP_
-#include <boost/reflect/any_ptr.hpp>
+#include <mace/stub/ptr.hpp>
 #include <boost/rpc/json/connection.hpp>
 #include <boost/any.hpp>
 
@@ -31,9 +31,9 @@ namespace boost { namespace rpc { namespace json {
 
   template<typename InterfaceType, typename T>
   void http_server::add_service( const std::string& path, const boost::shared_ptr<T>& s ) {
-    boost::reflect::any_ptr<InterfaceType> session(s);
+    mace::stub::ptr<InterfaceType> session(s);
     json::connection::ptr con = boost::make_shared<rpc::json::connection>();
-    boost::reflect::visit( session, add_interface_visitor<InterfaceType>( *con, session ) );
+    mace::stub::visit( session, add_interface_visitor<InterfaceType>( *con, session ) );
     add_service( path, con, session );
   }
 

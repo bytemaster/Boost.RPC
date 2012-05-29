@@ -16,7 +16,6 @@
 #include <boost/rpc/http/mime_types.hpp>
 #include <boost/rpc/http/reply.hpp>
 #include <boost/rpc/http/request.hpp>
-#include <boost/cmt/log/log.hpp>
 
 namespace boost { namespace rpc { namespace http {
 
@@ -27,7 +26,6 @@ file_handler::file_handler(const std::string& doc_root)
 
 bool file_handler::operator()(const request& req, const std::string& path, reply& rep)
 {
-  slog( "path: '%1%'", path );
   std::string request_path = path;
   // If path ends in slash (i.e. is a directory) then add "index.html".
   if (request_path[request_path.size() - 1] == '/') {

@@ -1,7 +1,7 @@
 #include <boost/network/protocol/http/client.hpp>
 #include <boost/rpc/json/connection.hpp>
 #include <boost/rpc/json/http_client.hpp>
-#include <boost/cmt/asio.hpp>
+#include <mace/cmt/asio.hpp>
 #include <boost/rpc/json/http_connection.hpp>
 
 namespace boost { namespace rpc { namespace json {
@@ -86,7 +86,7 @@ void http_connection::send( const json::value& msg,
     }
     std::string json_str;
     json::to_string( msg, json_str );
-    boost::cmt::asio::default_io_service().post( 
+    mace::cmt::asio::default_io_service().post( 
       boost::bind( async_post_http_request, shared_from_this(),
                   my->m_client, req, json_str, std::string(msg["id"]), pr ) );
 }
@@ -96,7 +96,7 @@ void http_connection::send( const json::value& msg ) {
         = boost::make_shared<boost::network::http::client::request>(my->m_url);
     std::string json_str;
     json::to_string( msg, json_str );
-    boost::cmt::asio::default_io_service().post( 
+    mace::cmt::asio::default_io_service().post( 
       boost::bind( async_post_http_request, 
                   shared_from_this(),
                   my->m_client, req, json_str, std::string(),

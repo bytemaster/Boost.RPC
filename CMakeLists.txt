@@ -1,6 +1,7 @@
 include_directories( include )
 include_directories( ../json/include )
 include_directories( ../cmt/include )
+include_directories( ../stub/include )
 include_directories( ../reflect/include )
 include_directories( ../context/include )
 include_directories( ../move/include )
@@ -9,7 +10,7 @@ include_directories( ../network/include )
 
 add_subdirectory( examples )
 
-SET( libraries  boost_cmt )
+SET( libraries  mace_cmt )
 SET( sources 
         src/json/connection.cpp
         src/json/tcp_connection.cpp

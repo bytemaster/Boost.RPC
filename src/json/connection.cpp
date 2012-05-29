@@ -13,26 +13,26 @@ namespace boost { namespace rpc { namespace json {
     public:
       typedef boost::unordered_map<uint64_t,connection::pending_result::ptr> pending_result_map;
 
-      connection_private( rpc::json::connection& s, boost::cmt::thread* t )
+      connection_private( rpc::json::connection& s, mace::cmt::thread* t )
       :self(s), m_thread(t), next_method_id(0),next_callback_id(0) { }
 
       rpc::json::connection&     self;
       method_map                 methods;
       pending_result_map         pending_results;
-      boost::cmt::thread*        m_thread;
+      mace::cmt::thread*        m_thread;
       uint64_t                   next_method_id;
       uint64_t                   next_callback_id;
 
       void break_promises() {
         pending_result_map::iterator itr = pending_results.begin();
         while( itr != pending_results.end() ) {
-            itr->second->handle_error( boost::copy_exception(boost::cmt::error::broken_promise()) );
+            itr->second->handle_error( boost::copy_exception(mace::cmt::error::broken_promise()) );
             ++itr;
         }
       }
   };
 
-  connection::connection( boost::cmt::thread* t ) {
+  connection::connection( mace::cmt::thread* t ) {
     my = new connection_private(*this, t);
   }
 
@@ -49,7 +49,7 @@ namespace boost { namespace rpc { namespace json {
   // called by some thread... 
   void connection::send( const json::value& msg, 
                          const connection::pending_result::ptr& pr  ) {
-    if( &boost::cmt::thread::current() != my->m_thread ) {
+    if( &mace::cmt::thread::current() != my->m_thread ) {
       my->m_thread->async<void>( 
           boost::bind( &connection::send, this, boost::cref(msg), pr ) ).wait();
       return;
@@ -60,7 +60,7 @@ namespace boost { namespace rpc { namespace json {
   }
 
   std::string connection::add_method( const rpc_method& m ) {
-    if( &boost::cmt::thread::current() != my->m_thread ) {
+    if( &mace::cmt::thread::current() != my->m_thread ) {
       return my->m_thread->async<std::string>( boost::bind( (std::string (connection::*)(const rpc_method&))&connection::add_method, this, m ) );
     } else {
       std::string mid = "CB" + boost::lexical_cast<std::string>( ++my->next_callback_id );
@@ -71,7 +71,7 @@ namespace boost { namespace rpc { namespace json {
 
   // what thread??? 
   void connection::add_method( const std::string& mid, const rpc_method& m ) {
-    if( &boost::cmt::thread::current() != my->m_thread ) {
+    if( &mace::cmt::thread::current() != my->m_thread ) {
       my->m_thread->async( boost::bind( &connection::add_method, this, mid, m ) );
     } else {
       my->methods[mid] = m;
@@ -80,7 +80,7 @@ namespace boost { namespace rpc { namespace json {
 
 
   uint64_t connection::next_method_id()             { return ++my->next_method_id; }
-  boost::cmt::thread* connection::get_thread()const { return my->m_thread; }
+  mace::cmt::thread* connection::get_thread()const { return my->m_thread; }
 
   void connection::handle_call( const json::value& m, json::value& reply ) {
     reply["id"] = m["id"];

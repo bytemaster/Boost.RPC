@@ -1,6 +1,6 @@
 #ifndef _BOOST_RPC_JSON_VALUE_IO_HPP_
 #define _BOOST_RPC_JSON_VALUE_IO_HPP_
-#include <boost/reflect/reflect.hpp>
+#include <mace/reflect/reflect.hpp>
 #include <boost/rpc/base64.hpp>
 #include <sstream>
 #include <iostream>
@@ -139,7 +139,7 @@ namespace boost { namespace rpc { namespace json { namespace io {
             json::io::pack( f, obj[name], f(*v) ); 
           }
         }
-        template<typename T,typename C, T(C::*p)>
+        template<typename T, T  p>
         inline void operator()( const char* name )const {
           pack_helper( c.*p, name );
         }
@@ -155,7 +155,7 @@ namespace boost { namespace rpc { namespace json { namespace io {
         unpack_object_visitor(Filter& _f, Class& _c, const json::object& _val)
         :f(_f),c(_c),obj(_val){}
 
-        template<typename T,typename C, T(C::*p)>
+        template<typename T, T p>
         void operator()( const char* name )const {
            if( obj.contains(name) )
                json::io::unpack( f, obj[name], c.*p );
@@ -233,23 +233,23 @@ namespace boost { namespace rpc { namespace json { namespace io {
         static inline void pack( Filter& f, json::value& jsv, const T& v ) { 
               jsv = json::object();
               detail::pack_object_visitor<T,Filter> pov(f,f(v),jsv);
-              boost::reflect::reflector<T>::visit(pov);
+              mace::reflect::reflector<T>::visit(pov);
         }
         template<typename T,typename Filter>
         static inline void unpack( Filter& f, const json::value& jsv, T& v ) { 
               detail::unpack_object_visitor<T,Filter> pov(f,v,jsv );
-              boost::reflect::reflector<T>::visit(pov);
+              mace::reflect::reflector<T>::visit(pov);
         }
       };
 
       template<> struct if_fusion_seq<false> {
           template<typename T,typename Filter> 
           inline static void pack( Filter& f, json::value& jsv, const T& v ) {
-              if_reflected<typename boost::reflect::reflector<T>::is_defined>::pack(f,jsv,f(v));
+              if_reflected<typename mace::reflect::reflector<T>::is_defined>::pack(f,jsv,f(v));
           }
           template<typename T,typename Filter> 
           inline static void unpack( Filter& f, const json::value& jsv, T& v ) {
-              if_reflected<typename boost::reflect::reflector<T>::is_defined>::unpack(f,jsv,v);
+              if_reflected<typename mace::reflect::reflector<T>::is_defined>::unpack(f,jsv,v);
           }
       };
 
@@ -263,12 +263,12 @@ namespace boost { namespace rpc { namespace json { namespace io {
           inline static void pack( json::value& jsv, const T& v ) {
               jsv = json::object();
               detail::pack_object_visitor<T> pov(v,jsv);
-              boost::reflect::reflector<T>::visit(pov);
+              mace::reflect::reflector<T>::visit(pov);
           }
           template<typename T> 
           inline static void unpack( const json::value& jsv, T& v ) {
               detail::unpack_object_visitor<T> pov(v,jsv );
-              boost::reflect::reflector<T>::visit(pov);
+              mace::reflect::reflector<T>::visit(pov);
           }
       };
       */

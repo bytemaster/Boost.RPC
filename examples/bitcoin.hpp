@@ -2,7 +2,7 @@
 #define _BITCOIN_HPP_
 #include <boost/asio.hpp>
 #include <boost/filesystem/path.hpp>
-#include <boost/reflect/any_ptr.hpp>
+#include <mace/stub/ptr.hpp>
 
 namespace bitcoin {
     namespace detail { class client; }
@@ -62,9 +62,9 @@ class client {
 };
 
 } // namespace bitcoin
-BOOST_REFLECT( bitcoin::address_info, (isvalid)(address)(ismine)(account) )
+MACE_REFLECT( bitcoin::address_info, (isvalid)(address)(ismine)(account) )
 
-BOOST_REFLECT( bitcoin::server_info, 
+MACE_REFLECT( bitcoin::server_info, 
     (version)
     (balance)
     (blocks)
@@ -80,7 +80,7 @@ BOOST_REFLECT( bitcoin::server_info,
     (errors)
 )
 
-BOOST_REFLECT_ANY( bitcoin::client,
+MACE_STUB( bitcoin::client,
   (backupwallet)
   (getaccount)
   (getaccountaddress)

@@ -17,8 +17,8 @@ class client_base {
     :m_con(c.m_con){ slog("this: %2% copy %1%", m_con.get(), this  ); }
 
     template<typename R, typename ParamSeq>
-    inline cmt::future<R> call_fused( const std::string& method, const ParamSeq& param ) {
-      slog( "this: %1%   m_con: %2% ", this, m_con.get() );
+    inline mace::cmt::future<R> call_fused( const std::string& method, const ParamSeq& param ) {
+      //slog( "this: %1%   m_con: %2% ", this, m_con.get() );
       return m_con->call_fused<R,ParamSeq>( method, param );
     }
 

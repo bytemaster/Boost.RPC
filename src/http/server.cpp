@@ -11,7 +11,7 @@
 #include <boost/rpc/http/server.hpp>
 #include <boost/rpc/http/request.hpp>
 #include <boost/rpc/http/reply.hpp>
-#include <boost/cmt/asio.hpp>
+#include <mace/cmt/asio.hpp>
 
 namespace boost { namespace rpc { namespace http {
 
@@ -19,10 +19,10 @@ server::server( const std::string& address, const std::string& port,
     boost::function<void(const request&, reply&)> request_handler)
   : request_handler_(request_handler)
 {
-  strand_.reset( new boost::asio::strand( boost::cmt::asio::default_io_service() ) );
-  tcp::resolver resolver(boost::cmt::asio::default_io_service() );
+  strand_.reset( new boost::asio::strand( mace::cmt::asio::default_io_service() ) );
+  tcp::resolver resolver(mace::cmt::asio::default_io_service() );
   tcp::resolver::query query(address, port);
-  acceptor_.reset(new tcp::acceptor(boost::cmt::asio::default_io_service(), *resolver.resolve(query)));
+  acceptor_.reset(new tcp::acceptor(mace::cmt::asio::default_io_service(), *resolver.resolve(query)));
 }
 
 #include <boost/rpc/http/yield.hpp> // Enable the pseudo-keywords reenter, yield and fork.

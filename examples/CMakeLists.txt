@@ -1,6 +1,6 @@
 SET( libraries 
     #/usr/local/lib/tcmalloc/libtcmalloc.a
-    boost_cmt
+    mace_cmt
     boost_rpc
     boost_context 
     ${Boost_THREAD_LIBRARY} 
@@ -20,6 +20,9 @@ target_link_libraries( rpcs ${libraries} )
 
 add_executable( rpcc  rpc_client.cpp  )
 target_link_libraries( rpcc ${libraries} )
+
+add_executable( benchc  benchc.cpp  )
+target_link_libraries( benchc ${libraries} )
 
 add_executable( jsonhttpd  jsonhttpd.cpp  )
 target_link_libraries( jsonhttpd ${libraries} cppnetlib-uri cppnetlib-server-parsers )

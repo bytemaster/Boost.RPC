@@ -28,7 +28,7 @@ class CalculatorServer
         double add( double v )             { m_result += v/* + get_num(v)*/;    /*got_result(m_result);*/  return m_result;  }
         double sub( double v )             { m_result -= v;                 return m_result;  }  
         double mult( double v )            { m_result *= v;                 /*got_result(m_result);*/  return m_result;  }
-        double div( double v )             { m_result /= v;                 /*got_result(m_result);*/  return m_result;  }
+        double div( const calc_str& v ) {                  /*got_result(m_result);*/  return m_result;  }
         double add2( double v, double v2 ) { m_result += v + v2;            /*got_result(m_result);*/  return m_result;  }
 
         double result()const { return m_result; }
@@ -65,7 +65,7 @@ int main(int argc, char * argv[]) {
       slog( "calculator!" );
       server.add_service<Calculator>( "/calculator", create_session() );
       slog( "exec!" );
-      boost::cmt::exec();
+      mace::cmt::exec();
       slog( "" );
     }
     catch (std::exception &e) {

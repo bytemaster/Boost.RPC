@@ -17,7 +17,7 @@ int main( int argc, char** argv ) {
    cli  m_cli(bcd);
    m_cli.start();
 
-   boost::cmt::exec();
+   mace::cmt::exec();
  } catch (const  boost::exception& e ) {
    elog( "%1%", boost::diagnostic_information(e) );
  } catch (const  std::exception& e ) {

@@ -4,7 +4,7 @@
 #include <boost/rpc/error.hpp>
 #include <boost/function.hpp>
 #include <vector>
-#include <boost/cmt/thread.hpp>
+#include <mace/cmt/thread.hpp>
 #include <boost/signals.hpp>
 #include <boost/fusion/include/size.hpp>
 #include <boost/fusion/include/front.hpp>
@@ -13,9 +13,10 @@
 #include <boost/fusion/support/deduce_sequence.hpp>
 #include <boost/fusion/include/make_unfused.hpp>
 #include <boost/rpc/json/named_parameters.hpp>
+#include <boost/function_types/result_type.hpp>
 
-#include <boost/reflect/any_ptr.hpp>
 
+#include <mace/stub/ptr.hpp>
 
 namespace boost { namespace rpc { namespace json {
 
@@ -66,7 +67,7 @@ typedef boost::error_info<struct json_err_code_,int64_t> err_code;
              typedef typename boost::fusion::result_of::as_vector<mpl_param_types>::type param_types;
              typedef typename boost::function_types::result_type<Signature>::type  R;
 
-             cmt::future<R> (connection::*cf)(const std::string&, const param_types&) = &connection::call_fused;
+             mace::cmt::future<R> (connection::*cf)(const std::string&, const param_types&) = &connection::call_fused;
              v = boost::fusion::make_unfused(boost::bind( cf, &m_con, (const std::string&)j, _1 ) );
            //return unpack( *this, j, v ); 
          }
@@ -84,10 +85,10 @@ typedef boost::error_info<struct json_err_code_,int64_t> err_code;
       /**
        *  @param t - the thread in which messages will be sent and callbacks invoked
        */
-      connection( cmt::thread* t = &cmt::thread::current()  );
+      connection( mace::cmt::thread* t = &mace::cmt::thread::current()  );
       ~connection();
 
-      cmt::thread* get_thread()const;
+      mace::cmt::thread* get_thread()const;
 
       void add_method( const std::string& mid, const rpc_method& m );
 
@@ -99,7 +100,7 @@ typedef boost::error_info<struct json_err_code_,int64_t> err_code;
 
 
       template<typename ParamSeq>
-      boost::cmt::future<json::value> call_fused( const std::string& method_name, const ParamSeq& param ) {
+      mace::cmt::future<json::value> call_fused( const std::string& method_name, const ParamSeq& param ) {
         json::value msg;
         create_call( method_name, param, msg );
         msg["id"]     = next_method_id();
@@ -119,7 +120,7 @@ typedef boost::error_info<struct json_err_code_,int64_t> err_code;
       }
 
       template<typename R, typename ParamSeq>
-      boost::cmt::future<R> call_fused( const std::string& method_name, const ParamSeq& param ) {
+      mace::cmt::future<R> call_fused( const std::string& method_name, const ParamSeq& param ) {
         json::value msg;
         msg["method"] = method_name;
         msg["id"]     = next_method_id();
@@ -196,10 +197,10 @@ typedef boost::error_info<struct json_err_code_,int64_t> err_code;
       template<typename R> 
       class pending_result_impl : public pending_result {
         public:
-          pending_result_impl():prom(new boost::cmt::promise<R>()){}
+          pending_result_impl():prom(new mace::cmt::promise<R>()){}
           ~pending_result_impl() {
             if( !prom->ready() ) {
-              prom->set_exception( boost::copy_exception( boost::cmt::error::broken_promise() ));
+              prom->set_exception( boost::copy_exception( mace::cmt::error::broken_promise() ));
             }
           }
           typedef boost::shared_ptr<pending_result_impl> ptr;
@@ -212,7 +213,7 @@ typedef boost::error_info<struct json_err_code_,int64_t> err_code;
           virtual void handle_error( const boost::exception_ptr& e  ) {
             prom->set_exception(e);
           }
-          typename boost::cmt::promise<R>::ptr prom;
+          typename mace::cmt::promise<R>::ptr prom;
       };
       class connection_private* my;
   };
@@ -286,17 +287,19 @@ typedef boost::error_info<struct json_err_code_,int64_t> err_code;
    */
   template<typename InterfaceType>
   struct add_interface_visitor {
-    add_interface_visitor( rpc::json::connection& c, boost::reflect::any_ptr<InterfaceType>& s )
+    add_interface_visitor( rpc::json::connection& c, mace::stub::ptr<InterfaceType>& s )
     :m_con(c),m_aptr(s){}
   
-    template<typename Member, typename VTable, Member VTable::*m>
+    template<typename MemberPtr,  MemberPtr m>
     void operator()(const char* name )const  {
-         typedef typename boost::fusion::traits::deduce_sequence<typename Member::fused_params>::type param_type;
-         m_con.add_method( name, detail::rpc_recv_functor<param_type, Member&, 
+        typedef typename boost::function_types::result_type<MemberPtr>::type MemberRef;
+        typedef typename boost::remove_reference<MemberRef>::type Member;
+        typedef typename boost::fusion::traits::deduce_sequence<typename Member::fused_params>::type param_type;
+        m_con.add_method( name, detail::rpc_recv_functor<param_type, Member&, 
                           has_named_params<typename Member::fused_params>::value >( (*m_aptr).*m ) );
     }
     rpc::json::connection&                   m_con;
-    boost::reflect::any_ptr<InterfaceType>& m_aptr;
+    mace::stub::ptr<InterfaceType>& m_aptr;
   };
 
 

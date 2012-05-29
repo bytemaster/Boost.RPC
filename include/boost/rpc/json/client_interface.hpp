@@ -9,9 +9,9 @@
   #include <boost/fusion/container/generation/make_vector.hpp>
   #include <boost/fusion/functional/generation/make_fused_function_object.hpp>
   #include <boost/fusion/functional/generation/make_unfused.hpp>
-  #include <boost/reflect/void.hpp>
+  #include <mace/stub/void.hpp>
   #include <boost/signals.hpp>
-  #include <boost/reflect/vtable.hpp>
+  #include <mace/stub/vtable.hpp>
 
   #include <boost/rpc/json/client_base.hpp>
 
@@ -33,7 +33,7 @@
             set_visitor( VTableType& vt, boost::rpc::json::client_base* ci )
             :m_ci(ci),vtbl(vt){}
 
-            template<typename M, typename InterfaceName, M (InterfaceName::*m)>
+            template<typename M, M m>
             void operator()( const char* name )const {
               (vtbl.*m).set( name, m_ci );
             }
@@ -71,7 +71,7 @@
       /**
        * @brief Implements the InterfaceDelegate meta-function to 
        *      determine what type to create to mirror MemberPointer 
-       *      in boost::reflect::vtable used by boost::reflect::any_ptr
+       *      in mace::reflect::vtable used by mace::reflect::any_ptr
        */
       template<typename MemberPointer>
       struct calculate_type {
@@ -80,7 +80,7 @@
 
       template<typename ClientType>
       static void set( ClientType& cl ) {
-        boost::reflect::visit( cl, detail::client_interface::set_visitor<typename ClientType::vtable_type>( *cl, &cl ) );
+        mace::stub::visit( cl, detail::client_interface::set_visitor<typename ClientType::vtable_type>( *cl, &cl ) );
       }
     };
 
@@ -117,8 +117,8 @@
 template<typename R, typename Class BOOST_PP_COMMA_IF(n) PARAM_TYPE_NAMES>
 struct client_member<R(Class::*)(PARAM_TYPES)const> : public detail::client_interface::client_member_base
 {
-  typedef typename boost::reflect::adapt_void<R>::result_type    result_type;
-  typedef boost::cmt::future<result_type>                        future_type;
+  typedef typename mace::stub::adapt_void<R>::result_type    result_type;
+  typedef mace::cmt::future<result_type>                        future_type;
   typedef client_member                                          self_type;
   typedef boost::fusion::vector<PARAM_TYPES>                     fused_params;
   typedef boost::function_traits<result_type(PARAM_TYPES)>       traits;
@@ -143,8 +143,8 @@ struct client_member<R(Class::*)(PARAM_TYPES)const> : public detail::client_inte
 template<typename R, typename Class  BOOST_PP_COMMA_IF(n) PARAM_TYPE_NAMES>
 struct client_member<R(Class::*)(PARAM_TYPES)>  : public detail::client_interface::client_member_base
 {
-  typedef typename boost::reflect::adapt_void<R>::result_type   result_type;
-  typedef boost::cmt::future<result_type>                       future_type;
+  typedef typename mace::stub::adapt_void<R>::result_type   result_type;
+  typedef mace::cmt::future<result_type>                       future_type;
   typedef client_member                                         self_type;
   typedef boost::fusion::vector<PARAM_TYPES>                    fused_params;
   typedef boost::function_traits<result_type(PARAM_TYPES)>      traits;

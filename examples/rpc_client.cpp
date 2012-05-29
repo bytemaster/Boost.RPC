@@ -50,10 +50,3 @@ int main( int argc, char** argv ) {
     }
     return 0;
 }
-
-int main2( int argc, char** argv ) {
-  boost::cmt::async( boost::bind(main2,argc,argv) );
-  boost::cmt::exec();
-  return 0;
-}
-

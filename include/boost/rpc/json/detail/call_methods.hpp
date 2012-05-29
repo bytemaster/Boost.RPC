@@ -31,19 +31,19 @@
 
     #if n > 0
       template<PARAM_TYPE_NAMES>
-      boost::cmt::future<rpc::json::value> call( const std::string& method_name, PARAM_ARGS ) {
+      mace::cmt::future<rpc::json::value> call( const std::string& method_name, PARAM_ARGS ) {
         return call_fused<rpc::json::value>( method_name, boost::fusion::make_vector( PARAM_NAMES ) );
       }
       template<typename R,PARAM_TYPE_NAMES>
-      boost::cmt::future<R> call( const std::string& method_name, PARAM_ARGS ) {
+      mace::cmt::future<R> call( const std::string& method_name, PARAM_ARGS ) {
         return call_fused<R>( method_name, boost::fusion::make_vector( PARAM_NAMES ) );
       }
    #else
-      boost::cmt::future<rpc::json::value> call( const std::string& method_name ) {
+      mace::cmt::future<rpc::json::value> call( const std::string& method_name ) {
         return call_fused<rpc::json::value>( method_name, boost::fusion::make_vector( ) );
       }
       template<typename R>
-      boost::cmt::future<R> call( const std::string& method_name ) {
+      mace::cmt::future<R> call( const std::string& method_name ) {
         return call_fused<R>( method_name, boost::fusion::make_vector( ) );
       }
    #endif
